@@ -1,0 +1,10 @@
+{
+  "description": "Create high-quality mobile app mockups that mirror web app designs, ensuring consistent branding and user experience for businesses and developers.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

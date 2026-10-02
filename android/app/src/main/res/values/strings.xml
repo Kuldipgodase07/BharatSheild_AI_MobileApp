@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BharatShield AI</string>
+    <string name="title_activity_main">BharatShield AI</string>
+    <string name="package_name">com.bharatshield.ai</string>
+    <string name="custom_url_scheme">com.bharatshield.ai</string>
+</resources>

@@ -1,0 +1,342 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --color-bg: #160F0A;
+  --color-sidebar: #1C130C;
+  --color-card: #241A12;
+  --color-card2: #2A1E14;
+  --color-border: rgba(255,214,170,0.08);
+  --color-border-strong: rgba(255,214,170,0.14);
+  --color-text: #F6ECE0;
+  --color-dim: #C9AF98;
+  --color-faint: #9C8672;
+  --color-orange: #FF7A3D;
+  --color-orange-deep: #C2540E;
+  --color-amber: #F2A93B;
+  --color-amber-deep: #B9791C;
+  --color-brown: #8A5A34;
+  --color-brown-deep: #4A2E1F;
+  --color-safe: #57C48A;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #EEF2F6;
+  color: #F6ECE0;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+input, textarea, button {
+  font-family: inherit;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ─── Sleek Scrollbars inside Mobile App ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 122, 61, 0.28);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 122, 61, 0.55);
+}
+
+/* ─── Light Theme Browser Background for Mobile App Showcase ───────────────── */
+.iphone-browser-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 25%, #FFFFFF 0%, #F1F4F9 55%, #E2E8F0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 12px;
+}
+
+/* Subtle soft ambient glow on light surface */
+.iphone-browser-bg::before {
+  content: '';
+  position: absolute;
+  width: 620px;
+  height: 620px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 122, 61, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Scaler container to ensure the entire phone fits in any window height */
+.iphone-device-scaler {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease-out;
+  transform-origin: center center;
+}
+
+/* ─── iPhone Frame (iPhone 15 / 16 Pro Style) ──────────────────────────────── */
+.iphone-phone-frame {
+  position: relative;
+  width: 390px;
+  height: 844px;
+  border-radius: 50px;
+  background: linear-gradient(155deg, #2E2B2A 0%, #191717 40%, #0F0E0E 100%);
+  padding: 11px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-shadow:
+    /* Realistic product studio shadow on light background */
+    0 28px 70px -10px rgba(15, 23, 42, 0.28),
+    0 14px 30px -5px rgba(15, 23, 42, 0.18),
+    0 4px 12px rgba(15, 23, 42, 0.12),
+    /* Titanium bezel chamfer highlights */
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.22),
+    inset 0 -1.5px 1.5px rgba(0, 0, 0, 0.8),
+    inset 1px 0 1.5px rgba(255, 255, 255, 0.12),
+    inset -1px 0 1.5px rgba(0, 0, 0, 0.6);
+}
+
+/* iPhone Right Side Button: Power / Lock Button */
+.iphone-btn-power {
+  position: absolute;
+  right: -3px;
+  top: 175px;
+  width: 3.5px;
+  height: 64px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #3A3533, #1A1817, #3A3533);
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.35);
+}
+
+/* iPhone Left Side Buttons: Action Button & Volume Rockers */
+.iphone-btn-action {
+  position: absolute;
+  left: -3px;
+  top: 115px;
+  width: 3.5px;
+  height: 26px;
+  border-radius: 3px 0 0 3px;
+  background: linear-gradient(180deg, #3A3533, #1A1817, #3A3533);
+  box-shadow: -1px 0 3px rgba(0, 0, 0, 0.35);
+}
+
+.iphone-btn-volup {
+  position: absolute;
+  left: -3px;
+  top: 158px;
+  width: 3.5px;
+  height: 48px;
+  border-radius: 3px 0 0 3px;
+  background: linear-gradient(180deg, #3A3533, #1A1817, #3A3533);
+  box-shadow: -1px 0 3px rgba(0, 0, 0, 0.35);
+}
+
+.iphone-btn-voldown {
+  position: absolute;
+  left: -3px;
+  top: 218px;
+  width: 3.5px;
+  height: 48px;
+  border-radius: 3px 0 0 3px;
+  background: linear-gradient(180deg, #3A3533, #1A1817, #3A3533);
+  box-shadow: -1px 0 3px rgba(0, 0, 0, 0.35);
+}
+
+/* Inner iPhone Super Retina XDR OLED Screen */
+.iphone-screen {
+  position: relative;
+  flex: 1;
+  border-radius: 40px;
+  overflow: hidden;
+  background: #160F0A;
+  box-shadow:
+    inset 0 0 1px rgba(255, 255, 255, 0.08),
+    inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Dynamic Island ───────────────────────────────────────────────────────── */
+.iphone-dynamic-island {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 102px;
+  height: 27px;
+  border-radius: 20px;
+  background: #000000;
+  z-index: 10001;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 9px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Camera Lens reflection inside Dynamic Island */
+.iphone-dynamic-island::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #252838, #0D0E14);
+  box-shadow: inset 0 0 2px rgba(80, 110, 180, 0.4);
+}
+
+/* ─── iOS Status Bar ───────────────────────────────────────────────────────── */
+.iphone-status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 24px 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(22, 15, 10, 0.94) 0%, rgba(22, 15, 10, 0.5) 75%, transparent 100%);
+}
+
+.iphone-status-time {
+  font-size: 13px;
+  font-weight: 600;
+  color: #F6ECE0;
+  letter-spacing: -0.2px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.iphone-status-icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ─── iOS Home Indicator Bar ───────────────────────────────────────────────── */
+.iphone-home-bar {
+  position: absolute;
+  bottom: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 124px;
+  height: 4.5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.35);
+  z-index: 10001;
+  pointer-events: none;
+}
+
+/* ─── App Viewport inside Screen ───────────────────────────────────────────── */
+.iphone-app-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 40px;
+}
+
+/* ─── Responsive: On mobile device screens (<500px), drop the frame ────────── */
+@media (max-width: 500px) {
+  .iphone-browser-bg {
+    background: #160F0A;
+    padding: 0;
+  }
+  .iphone-browser-bg::before {
+    display: none;
+  }
+  .iphone-device-scaler {
+    transform: none !important;
+    width: 100%;
+    height: 100%;
+  }
+  .iphone-phone-frame {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    background: #160F0A;
+  }
+  .iphone-btn-power,
+  .iphone-btn-action,
+  .iphone-btn-volup,
+  .iphone-btn-voldown {
+    display: none;
+  }
+  .iphone-screen {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .iphone-app-viewport {
+    border-radius: 0;
+  }
+  .iphone-dynamic-island,
+  .iphone-status-bar,
+  .iphone-home-bar {
+    display: none;
+  }
+}
+
+/* ─── App Keyframe Animations ─────────────────────────────────────────────── */
+@keyframes bs-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50%       { transform: scale(1.18); opacity: 0.15; }
+}
+@keyframes bs-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes bs-fadein {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes bs-bar {
+  from { width: 0%; }
+}
+@keyframes bs-flow {
+  to { stroke-dashoffset: -16; }
+}
+@keyframes bs-halo {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0; transform: scale(1.7); }
+}
+@keyframes bs-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes bs-beam {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes bs-scan {
+  0% { top: 0; }
+  50% { top: calc(100% - 2px); }
+  100% { top: 0; }
+}

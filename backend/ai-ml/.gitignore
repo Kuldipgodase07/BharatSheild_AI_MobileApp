@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+models/**/*.pt
+models/**/*.keras
+models/**/*.joblib
+data/raw/documents/
+data/raw/signatures/
+reports/*.png

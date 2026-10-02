@@ -1,0 +1,36 @@
+node_modules/
+dist/
+build/
+.cache/
+
+# Environment / secrets — NEVER commit real credentials
+.env
+.env.*
+!.env.example
+
+.vite/
+vite.config.*.timestamp-*
+*.tsbuildinfo
+*-debug.log*
+logs/
+*.log
+.claude-replay.*
+.tmp-*
+/.figma/design-context/
+
+# Platform-managed agentplat state, not project source. In the
+# client-initiated single-repo workspace layout (make's `Path: "."` spec) the
+# repo root IS the workspace root, so these land inside this repo rather than
+# beside it.
+/.plugins/
+/.opencode-skills/
+
+# Android & Capacitor build artifacts
+frontend/dist/
+android/.gradle/
+android/app/build/
+android/build/
+android/captures/
+.gradle/
+*.apk
+*.aab

@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BharatShield AI — Healthcare Fraud Detection</title>
+<style>
+  :root{
+    --bg:#160F0A;
+    --sidebar:#1C130C;
+    --card:#241A12;
+    --card-2:#2A1E14;
+    --border:rgba(255,214,170,0.08);
+    --border-strong:rgba(255,214,170,0.14);
+    --text:#F6ECE0;
+    --text-dim:#C9AF98;
+    --text-faint:#9C8672;
+    --orange:#FF7A3D;
+    --orange-deep:#C2540E;
+    --amber:#F2A93B;
+    --amber-deep:#B9791C;
+    --brown:#8A5A34;
+    --brown-deep:#4A2E1F;
+    --clay:#D96B3A;
+    --safe:#57C48A;
+    --risky:#FF7A3D;
+    --radius-lg:18px;
+    --radius-md:12px;
+    --radius-sm:8px;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);}
+  body{min-height:100vh;}
+  a{color:inherit;text-decoration:none;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#3A281A;border-radius:8px;}
+
+  .app{display:flex;min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:260px;flex-shrink:0;
+    background:var(--sidebar);
+    border-right:1px solid var(--border);
+    padding:22px 18px;
+    display:flex;flex-direction:column;
+    position:sticky;top:0;height:100vh;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 4px 26px 4px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(135deg,var(--orange),var(--orange-deep));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 14px rgba(255,122,61,0.35);
+  }
+  .brand-name{font-weight:700;font-size:15px;letter-spacing:0.4px;}
+  .brand-name span{color:var(--amber);}
+
+  .search-box{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:9px 12px;margin-bottom:22px;
+  }
+  .search-box input{
+    background:none;border:none;outline:none;color:var(--text);
+    font-size:13px;width:100%;
+  }
+  .search-box input::placeholder{color:var(--text-faint);}
+
+  .nav-label{
+    font-size:11px;text-transform:uppercase;letter-spacing:1px;
+    color:var(--text-faint);margin:6px 6px 8px;
+  }
+  .nav{display:flex;flex-direction:column;gap:3px;margin-bottom:20px;}
+  .nav-item{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;padding:10px 12px;border-radius:var(--radius-md);
+    color:var(--text-dim);font-size:13.5px;font-weight:500;cursor:pointer;
+    border:1px solid transparent;
+  }
+  .nav-item .left{display:flex;align-items:center;gap:10px;}
+  .nav-item svg{width:17px;height:17px;flex-shrink:0;}
+  .nav-item:hover{background:rgba(255,255,255,0.04);color:var(--text);}
+  .nav-item.active{
+    background:linear-gradient(135deg,var(--orange),var(--orange-deep));
+    color:#fff;box-shadow:0 6px 16px rgba(194,84,14,0.35);
+  }
+  .badge{
+    font-size:11px;background:rgba(255,255,255,0.08);
+    padding:1px 7px;border-radius:20px;color:var(--text-dim);
+  }
+  .nav-item.active .badge{background:rgba(255,255,255,0.25);color:#fff;}
+
+  .upgrade-card{
+    margin-top:auto;
+    background:linear-gradient(160deg,var(--amber),var(--orange-deep));
+    border-radius:var(--radius-lg);
+    padding:18px;color:#fff;
+  }
+  .upgrade-card h4{margin:0 0 6px;font-size:15px;}
+  .upgrade-card p{margin:0 0 14px;font-size:12.5px;opacity:0.9;line-height:1.4;}
+  .upgrade-btn{
+    display:inline-block;background:rgba(0,0,0,0.28);
+    padding:9px 14px;border-radius:9px;font-size:12.5px;font-weight:600;
+    cursor:pointer;
+  }
+
+  /* ---------- Main ---------- */
+  .main{flex:1;min-width:0;padding:22px 28px 50px;}
+  .topbar{display:flex;align-items:center;gap:16px;margin-bottom:26px;}
+  .topbar .search-box{flex:1;margin-bottom:0;max-width:520px;}
+  .icon-btn{
+    width:38px;height:38px;border-radius:10px;
+    background:rgba(255,255,255,0.03);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    color:var(--text-dim);
+  }
+  .profile{
+    display:flex;align-items:center;gap:9px;
+    background:rgba(255,255,255,0.03);border:1px solid var(--border);
+    border-radius:12px;padding:6px 12px 6px 6px;margin-left:auto;
+  }
+  .avatar{
+    width:28px;height:28px;border-radius:50%;
+    background:linear-gradient(135deg,var(--amber),var(--orange-deep));
+    display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;
+  }
+  .profile span{font-size:13.5px;font-weight:600;}
+
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .page-head h1{font-size:26px;margin:0;font-weight:700;letter-spacing:-0.3px;}
+  .dropdown-btn{
+    background:rgba(255,255,255,0.03);border:1px solid var(--border-strong);
+    color:var(--text);padding:9px 14px;border-radius:10px;font-size:13px;font-weight:600;
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+  }
+
+  .page{display:none;}
+  .page.active{display:block;}
+
+  /* ---------- Stat cards ---------- */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+  .stat-card{
+    border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden;color:#fff;
+  }
+  .stat-card::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(120px 120px at 90% 0%, rgba(255,255,255,0.18), transparent 70%);
+  }
+  .stat-top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;}
+  .stat-title{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;opacity:0.95;}
+  .stat-icon{
+    width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,0.22);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .stat-icon svg{width:14px;height:14px;}
+  .stat-body{display:flex;align-items:flex-end;justify-content:space-between;margin-top:20px;position:relative;z-index:1;}
+  .stat-num{font-size:30px;font-weight:800;line-height:1;}
+  .stat-sub{font-size:12px;opacity:0.85;margin-top:4px;}
+  .mini-donut{
+    width:52px;height:52px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;
+  }
+  .mini-donut .hole{
+    width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  .card1{background:linear-gradient(135deg,#FF8A50,#C2540E);}
+  .card1 .hole{background:#C2540E;}
+  .card2{background:linear-gradient(135deg,#F5B15A,#B9791C);}
+  .card2 .hole{background:#B9791C;}
+  .card3{background:linear-gradient(135deg,#D96B3A,#7A3B12);}
+  .card3 .hole{background:#7A3B12;}
+  .card4{background:linear-gradient(135deg,#A06A3E,#4A2E1F);}
+  .card4 .hole{background:#4A2E1F;}
+
+  /* ---------- Panels ---------- */
+  .row{display:grid;gap:16px;}
+  .row.split{grid-template-columns:2fr 1fr;}
+  .row.two{grid-template-columns:1fr 1fr;}
+  .row.five{grid-template-columns:repeat(5,1fr);}
+  .row.four{grid-template-columns:repeat(4,1fr);}
+
+  .panel{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--radius-lg);padding:20px;
+  }
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .panel-head h3{margin:0;font-size:16px;font-weight:700;}
+  .panel-head .meta{font-size:12px;color:var(--text-faint);}
+
+  /* wave chart */
+  .chart-wrap{position:relative;}
+  .chart-tooltip{
+    position:absolute;top:6px;left:44%;background:#1F150D;border:1px solid var(--border-strong);
+    border-radius:10px;padding:8px 14px;text-align:center;box-shadow:0 10px 24px rgba(0,0,0,0.4);
+  }
+  .chart-tooltip .amt{font-weight:800;font-size:15px;}
+  .chart-tooltip .mon{font-size:11px;color:var(--text-faint);}
+  .chart-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--text-faint);margin-top:6px;padding:0 4px;}
+
+  /* settings list */
+  .setting-item{
+    display:flex;gap:12px;padding:13px 6px;border-bottom:1px solid var(--border);cursor:pointer;
+  }
+  .setting-item:last-child{border-bottom:none;}
+  .setting-ico{
+    width:34px;height:34px;border-radius:9px;background:rgba(255,122,61,0.12);
+    display:flex;align-items:center;justify-content:center;color:var(--orange);flex-shrink:0;
+  }
+  .setting-ico svg{width:16px;height:16px;}
+  .setting-title{font-size:13.5px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+  .setting-desc{font-size:12px;color:var(--text-faint);margin-top:3px;line-height:1.45;}
+  .setting-desc a{color:var(--amber);text-decoration:underline;}
+
+  /* faq */
+  .faq-item{
+    background:rgba(255,255,255,0.02);border:1px solid var(--border);
+    border-radius:10px;padding:12px 14px;margin-bottom:9px;font-size:13px;
+    display:flex;justify-content:space-between;align-items:center;color:var(--text-dim);cursor:pointer;
+  }
+
+  /* mini area */
+  .mini-area{height:130px;}
+  .date-pill{font-size:12px;color:var(--text-faint);}
+
+  /* donuts row */
+  .donut-card{text-align:left;}
+  .donut-card .panel-head h3{font-size:14px;}
+  .donut-graphic{
+    width:96px;height:96px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;margin:6px auto 12px;
+    position:relative;
+  }
+  .donut-graphic .center{
+    width:68px;height:68px;border-radius:50%;background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;
+  }
+  .legend{display:flex;gap:14px;font-size:11.5px;color:var(--text-dim);justify-content:center;}
+  .legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+
+  /* events per user */
+  .user-row{display:flex;align-items:center;justify-content:space-between;padding:11px 4px;border-bottom:1px solid var(--border);}
+  .user-row:last-child{border-bottom:none;}
+  .user-left{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;}
+  .user-avatar{
+    width:30px;height:30px;border-radius:50%;
+    background:linear-gradient(135deg,var(--amber),var(--brown-deep));
+    display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff;
+  }
+  .user-count{font-size:13px;color:var(--text-faint);font-weight:600;}
+
+  /* horizontal bars */
+  .bar-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  .bar-label{width:110px;font-size:12.5px;color:var(--text-dim);flex-shrink:0;}
+  .bar-track{flex:1;height:9px;border-radius:6px;background:rgba(255,255,255,0.05);overflow:hidden;}
+  .bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--orange),var(--amber));}
+
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;color:var(--text-faint);font-weight:600;font-size:11.5px;
+    text-transform:uppercase;letter-spacing:0.4px;padding:0 10px 10px;
+    border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:13px 10px;border-bottom:1px solid var(--border);color:var(--text-dim);}
+  tbody tr:last-child td{border-bottom:none;}
+  .risk-pill{
+    display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:700;
+  }
+  .risk-high{background:rgba(255,122,61,0.16);color:var(--orange);}
+  .risk-med{background:rgba(242,169,59,0.16);color:var(--amber);}
+  .risk-low{background:rgba(87,196,138,0.16);color:var(--safe);}
+  .export-btn{
+    background:rgba(255,255,255,0.04);border:1px solid var(--border-strong);
+    padding:8px 14px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text);
+  }
+
+  /* tabs inline */
+  .subtabs{display:flex;gap:26px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+  .subtab{padding:10px 2px 14px;font-size:13.5px;font-weight:600;color:var(--text-faint);cursor:pointer;border-bottom:2px solid transparent;}
+  .subtab.active{color:var(--amber);border-color:var(--amber);}
+
+  /* provider tile */
+  .prov-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .prov-tile{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;}
+  .prov-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .prov-name{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:700;}
+  .prov-logo{
+    width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:800;color:#fff;
+  }
+  .prov-meta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-faint);margin-bottom:4px;}
+  .prov-meta b{color:var(--text-dim);font-size:13px;}
+  .prov-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+  .tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+  .tag-new{background:rgba(87,196,138,0.16);color:var(--safe);}
+  .tag-risky{background:rgba(255,122,61,0.16);color:var(--orange);}
+
+  /* risk bars (patient behavior) */
+  .risk-break{display:flex;align-items:center;gap:12px;}
+  .risk-break-ico{
+    width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .risk-break-ico.warn{background:rgba(255,122,61,0.14);color:var(--orange);}
+  .risk-break-ico.ok{background:rgba(87,196,138,0.14);color:var(--safe);}
+  .risk-track{height:8px;border-radius:6px;background:rgba(255,255,255,0.06);margin-top:14px;overflow:hidden;}
+  .risk-fill{height:100%;border-radius:6px;}
+  .risk-fill.warn{background:linear-gradient(90deg,var(--orange),var(--amber));}
+  .risk-fill.ok{background:var(--safe);}
+  .risk-meta{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-faint);margin-top:6px;}
+
+  .segbar{display:flex;gap:3px;}
+  .seg{width:9px;height:9px;border-radius:2px;}
+  .seg.on-high{background:var(--orange);}
+  .seg.on-low{background:var(--safe);}
+
+  /* ---------- Manage-section additions ---------- */
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+  .kpi-tile{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);
+    padding:18px 20px;
+  }
+  .kpi-tile .kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .kpi-tile .kpi-label{font-size:12.5px;color:var(--text-faint);font-weight:600;}
+  .kpi-tile .kpi-ico{
+    width:30px;height:30px;border-radius:8px;background:rgba(255,122,61,0.12);color:var(--orange);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .kpi-tile .kpi-ico svg{width:15px;height:15px;}
+  .kpi-tile .kpi-num{font-size:26px;font-weight:800;}
+  .kpi-tile .kpi-delta{font-size:12px;font-weight:600;margin-top:4px;}
+  .kpi-delta.up{color:var(--safe);}
+  .kpi-delta.down{color:var(--orange);}
+  .kpi-delta.flat{color:var(--text-faint);}
+
+  .priority-pill{display:inline-flex;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:700;}
+  .priority-high{background:rgba(255,122,61,0.16);color:var(--orange);}
+  .priority-med{background:rgba(242,169,59,0.16);color:var(--amber);}
+  .priority-low{background:rgba(87,196,138,0.16);color:var(--safe);}
+
+  .status-pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--text-dim);}
+  .status-dot{width:8px;height:8px;border-radius:50%;}
+  .status-dot.open{background:var(--orange);}
+  .status-dot.review{background:var(--amber);}
+  .status-dot.closed{background:var(--safe);}
+
+  .pipeline-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .pipeline-label{width:96px;font-size:12.5px;color:var(--text-dim);flex-shrink:0;}
+  .pipeline-track{flex:1;height:10px;border-radius:6px;background:rgba(255,255,255,0.05);overflow:hidden;}
+  .pipeline-fill{height:100%;border-radius:6px;}
+  .pipeline-count{width:30px;text-align:right;font-size:12.5px;font-weight:700;color:var(--text-dim);}
+
+  /* toggle switch */
+  .toggle{
+    position:relative;width:38px;height:21px;border-radius:20px;background:rgba(255,255,255,0.1);
+    cursor:pointer;flex-shrink:0;transition:background .15s;
+  }
+  .toggle::after{
+    content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;
+    background:#fff;transition:left .15s;
+  }
+  .toggle.on{background:linear-gradient(135deg,var(--orange),var(--orange-deep));}
+  .toggle.on::after{left:19px;}
+
+  .rule-row{display:flex;align-items:center;gap:16px;padding:14px 8px;border-bottom:1px solid var(--border);}
+  .rule-row:last-child{border-bottom:none;}
+  .rule-name{font-size:13.5px;font-weight:700;}
+  .rule-cond{font-size:12px;color:var(--text-faint);margin-top:3px;}
+  .rule-arrow{font-size:12px;color:var(--text-faint);margin:0 4px;}
+  .rule-action{font-size:12px;color:var(--text-dim);}
+  .rule-hits{font-size:13px;font-weight:700;width:78px;text-align:center;color:var(--text-dim);}
+
+  .model-row{display:flex;align-items:center;justify-content:space-between;padding:12px 6px;border-bottom:1px solid var(--border);}
+  .model-row:last-child{border-bottom:none;}
+  .model-left{display:flex;align-items:center;gap:12px;}
+  .model-dot{width:9px;height:9px;border-radius:50%;background:var(--safe);flex-shrink:0;}
+  .model-dot.paused{background:var(--text-faint);}
+  .model-name{font-size:13.5px;font-weight:700;}
+  .model-type{font-size:11.5px;color:var(--text-faint);}
+  .model-metric{font-size:14px;font-weight:800;color:var(--amber);}
+
+  .alert-row td{vertical-align:middle;}
+  .btn-resolve{
+    background:linear-gradient(135deg,var(--orange),var(--orange-deep));
+    color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;
+  }
+  .btn-resolved{
+    background:rgba(87,196,138,0.14);color:var(--safe);
+    border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:default;
+  }
+
+  @media (max-width:1200px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .row.split, .row.two, .row.five, .row.four{grid-template-columns:1fr;}
+    .prov-grid{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 5v6c0 5 3.4 9 8 11 4.6-2 8-6 8-11V5l-8-3z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="brand-name">BHARAT<span>SHIELD</span> AI</div>
+    </div>
+
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9C8672" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input placeholder="Search…">
+    </div>
+
+    <div class="nav-label">Menu</div>
+    <div class="nav">
+      <div class="nav-item active" data-page="dashboard">
+        <div class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</div>
+      </div>
+      <div class="nav-item" data-page="claims">
+        <div class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l7 3v6c0 5-3.1 8.6-7 10-3.9-1.4-7-5-7-10V5l7-3z"/></svg>Claims Forensics</div>
+        <span class="badge">12</span>
+      </div>
+      <div class="nav-item" data-page="network">
+        <div class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Provider Network</div>
+      </div>
+      <div class="nav-item" data-page="behavior">
+        <div class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"/><circle cx="18" cy="8.5" r="2.2"/><path d="M16.5 12c2.6.3 4.5 2.3 4.9 5"/></svg>Claimant Behavior</div>
+      </div>
+    </div>
+
+    <div class="nav-label">Manage</div>
+    <div class="nav">
+      <div class="nav-item" data-page="investigations"><div class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Investigations</div></div>
+      <div class="nav-item" data-page="rules"><div class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l7 3v6c0 5-3.1 8.6-7 10-3.9-1.4-7-5-7-10V5l7-3z"/><path d="M9 12l2 2 4-4"/></svg>Fraud Rules</div></div>
+      <div class="nav-item" data-page="scoring"><div class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l4-8 4 5 3-4 7 7"/></svg>Risk Scoring</div></div>
+      <div class="nav-item" data-page="alerts"><div class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg>Alerts</div><span class="badge">4</span></div>
+    </div>
+
+    <div class="nav-label">Compliance</div>
+    <div class="nav">
+      <div class="nav-item" data-page="dpdp"><div class="left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>DPDP Rights Center</div><span class="badge">14</span></div>
+    </div>
+
+    <div class="upgrade-card">
+      <h4>Go Enterprise 🛡️</h4>
+      <p>Unlock IRDAI-aligned reporting and unlimited investigations for your team.</p>
+      <div class="upgrade-btn">Upgrade Now</div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <div class="topbar">
+      <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9C8672" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input placeholder="Search claims, providers, claimants…">
+      </div>
+      <div class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
+      <div class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+      <div class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 3v6h-6"/></svg></div>
+      <div class="profile">
+        <div class="avatar">DR</div>
+        <span>Dr. Rekha</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: DASHBOARD ============ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-head">
+        <h1>Fraud Dashboard</h1>
+        <div class="dropdown-btn">Add Rule <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card card1">
+          <div class="stat-top">
+            <div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>High-risk Claims</div>
+          </div>
+          <div class="stat-body">
+            <div><div class="stat-num">29</div><div class="stat-sub">of 38 total</div></div>
+            <div class="mini-donut" style="background:conic-gradient(#fff 80%, rgba(255,255,255,0.28) 0)"><div class="hole">80%</div></div>
+          </div>
+        </div>
+        <div class="stat-card card2">
+          <div class="stat-top">
+            <div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 19h16M4 15l4-4 3 3 5-6 4 4"/></svg></div>Suspicious Billing</div>
+          </div>
+          <div class="stat-body">
+            <div><div class="stat-num">08</div><div class="stat-sub">of 26 total</div></div>
+            <div class="mini-donut" style="background:conic-gradient(#fff 32%, rgba(255,255,255,0.28) 0)"><div class="hole">32%</div></div>
+          </div>
+        </div>
+        <div class="stat-card card3">
+          <div class="stat-top">
+            <div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/></svg></div>High-risk Providers</div>
+          </div>
+          <div class="stat-body">
+            <div><div class="stat-num">06</div><div class="stat-sub">of 09 total</div></div>
+            <div class="mini-donut" style="background:conic-gradient(#fff 60%, rgba(255,255,255,0.28) 0)"><div class="hole">60%</div></div>
+          </div>
+        </div>
+        <div class="stat-card card4">
+          <div class="stat-top">
+            <div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2l7 3v6c0 5-3.1 8.6-7 10-3.9-1.4-7-5-7-10V5l7-3z"/></svg></div>Flagged Policies</div>
+          </div>
+          <div class="stat-body">
+            <div><div class="stat-num">01</div><div class="stat-sub">of 12 total</div></div>
+            <div class="mini-donut" style="background:conic-gradient(#fff 10%, rgba(255,255,255,0.28) 0)"><div class="hole">10%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row split" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Claims Value Over Time</h3>
+            <div class="dropdown-btn" style="padding:7px 12px;font-size:12.5px;">Investigate <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-tooltip"><div class="amt">₹3.9L</div><div class="mon">July</div></div>
+            <svg viewBox="0 0 760 220" width="100%" height="220" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#C2540E" stop-opacity="0.55"/>
+                  <stop offset="100%" stop-color="#C2540E" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#F2A93B" stop-opacity="0.6"/>
+                  <stop offset="100%" stop-color="#F2A93B" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0,150 C60,110 120,190 180,150 C240,110 300,60 360,90 C420,120 480,180 540,140 C600,100 660,60 760,90 L760,220 L0,220 Z" fill="url(#g1)" stroke="#C2540E" stroke-width="2.5"/>
+              <path d="M0,170 C60,190 120,120 180,140 C240,160 300,90 360,120 C420,150 480,70 540,60 C600,50 660,110 760,150 L760,220 L0,220 Z" fill="url(#g2)" stroke="#F2A93B" stroke-width="2.5" opacity="0.9"/>
+              <circle cx="330" cy="95" r="6" fill="#fff" stroke="#C2540E" stroke-width="3"/>
+            </svg>
+          </div>
+          <div class="chart-axis"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Fraud Prevention Settings</h3><span style="cursor:pointer;color:var(--text-faint);">⋮</span></div>
+          <div class="setting-item">
+            <div class="setting-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></div>
+            <div>
+              <div class="setting-title">Real-time Alerts</div>
+              <div class="setting-desc">Get notified instantly when a high-risk claim is submitted. <a href="#">Read more</a></div>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg></div>
+            <div>
+              <div class="setting-title">Document Forensics</div>
+              <div class="setting-desc">Scan uploaded discharge summaries and bills for tampering. <a href="#">Read more</a></div>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"/></svg></div>
+            <div>
+              <div class="setting-title">Investigations</div>
+              <div class="setting-desc">Launch deep-dive reviews on flagged providers and claimants. <a href="#">Read more</a></div>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M4 15l4-4 3 3 5-6 4 4"/></svg></div>
+            <div>
+              <div class="setting-title">Automated Reporting</div>
+              <div class="setting-desc">Receive a weekly summary of fraud detection activity. <a href="#">Read more</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row two">
+        <div class="panel">
+          <div class="panel-head"><h3>Learn to use BharatShield AI</h3><span style="cursor:pointer;color:var(--text-faint);">⋮</span></div>
+          <div class="faq-item">What triggers a high-risk claim flag? <span>›</span></div>
+          <div class="faq-item">How does document forensics detect tampering? <span>›</span></div>
+          <div class="faq-item">Understanding the ensemble risk score</div>
+          <div class="faq-item">Optimizing your claim review workflow <span>›</span></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Get Fraud Summary Report</h3>
+            <span class="date-pill">1 Mar 2026 – 31 Mar 2026</span>
+          </div>
+          <svg viewBox="0 0 300 130" width="100%" height="130" preserveAspectRatio="none" class="mini-area">
+            <defs>
+              <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FF7A3D" stop-opacity="0.55"/>
+                <stop offset="100%" stop-color="#FF7A3D" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,90 C30,40 60,110 90,70 C120,30 150,80 180,60 C210,40 240,90 270,70 L300,80 L300,130 L0,130 Z" fill="url(#g3)" stroke="#FF7A3D" stroke-width="2.5"/>
+          </svg>
+          <div class="chart-axis"><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: CLAIMS FORENSICS ============ -->
+    <div class="page" id="page-claims">
+      <div class="page-head">
+        <h1>Claims Forensics</h1>
+        <div class="dropdown-btn">Investigate <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+      <div class="subtabs">
+        <div class="subtab active">Incidents</div>
+        <div class="subtab">All Claims</div>
+      </div>
+
+      <div class="row five" style="margin-bottom:16px;">
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Hospital Claims</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--orange) 72%, rgba(255,255,255,0.08) 0)"><div class="center">72%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--orange)"></i>Suspicious</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Safe</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Pharmacy Claims</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--amber) 45%, rgba(255,255,255,0.08) 0)"><div class="center">45%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--amber)"></i>Suspicious</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Safe</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Diagnostic Claims</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--clay) 85%, rgba(255,255,255,0.08) 0)"><div class="center">85%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--clay)"></i>Suspicious</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Safe</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Telemedicine</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--brown) 28%, rgba(255,255,255,0.08) 0)"><div class="center">28%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--brown)"></i>Suspicious</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Safe</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Third-party Claims</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--orange-deep) 92%, rgba(255,255,255,0.08) 0)"><div class="center">92%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--orange-deep)"></i>Suspicious</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Safe</span></div>
+        </div>
+      </div>
+
+      <div class="row two" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-head"><h3>Claims per Provider</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="user-row"><div class="user-left"><div class="user-avatar">AH</div>Apollo Hospitals</div><div class="user-count">112</div></div>
+          <div class="user-row"><div class="user-left"><div class="user-avatar">FH</div>Fortis Healthcare</div><div class="user-count">67</div></div>
+          <div class="user-row"><div class="user-left"><div class="user-avatar">MH</div>Max Super Speciality</div><div class="user-count">51</div></div>
+          <div class="user-row"><div class="user-left"><div class="user-avatar">MP</div>MedPlus Pharmacy</div><div class="user-count">39</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Claims by Document Type</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="bar-row"><div class="bar-label">Hospital Bills</div><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Discharge Summary</div><div class="bar-track"><div class="bar-fill" style="width:63%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Diagnostic Reports</div><div class="bar-track"><div class="bar-fill" style="width:74%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Prescriptions</div><div class="bar-track"><div class="bar-fill" style="width:34%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">ID Proofs</div><div class="bar-track"><div class="bar-fill" style="width:22%"></div></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Claim Event Overview</h3><div class="export-btn">Export</div></div>
+        <table>
+          <thead><tr><th>Risk Level</th><th>Claim ID</th><th>Operation</th><th>Claimant</th><th>Provider</th><th>Source</th><th>Time</th><th>Option</th></tr></thead>
+          <tbody>
+            <tr><td><span class="risk-pill risk-high">High</span></td><td>CLM-1092 (192 of 192 docs)</td><td>Document Upload</td><td>Ramesh Kumar</td><td>Apollo Hospitals</td><td>Aadhar Upload</td><td>29 Mar 2026 – 20 Apr</td><td>⋮</td></tr>
+            <tr><td><span class="risk-pill risk-med">Medium</span></td><td>CLM-1087</td><td>Claim Submission</td><td>Sunita Sharma</td><td>MedPlus Pharmacy</td><td>Mobile App</td><td>27 Mar 2026</td><td>⋮</td></tr>
+            <tr><td><span class="risk-pill risk-high">High</span></td><td>CLM-1071</td><td>Bill Re-upload</td><td>Rafiq Ahmed</td><td>Max Super Speciality</td><td>Web Portal</td><td>25 Mar 2026</td><td>⋮</td></tr>
+            <tr><td><span class="risk-pill risk-low">Low</span></td><td>CLM-1065</td><td>Claim Submission</td><td>Anjali Rao</td><td>Fortis Healthcare</td><td>Web Portal</td><td>22 Mar 2026</td><td>⋮</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: PROVIDER NETWORK ============ -->
+    <div class="page" id="page-network">
+      <div class="page-head">
+        <h1>Provider Network</h1>
+        <div class="dropdown-btn">Add Policy <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+      <div class="subtabs">
+        <div class="subtab active">In-network Providers</div>
+        <div class="subtab">Out-of-network Providers</div>
+      </div>
+
+      <div class="row two" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-head"><h3>Hospitals</h3><div class="dropdown-btn" style="padding:6px 10px;font-size:12px;">March <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          <div style="display:flex;gap:24px;justify-content:center;">
+            <div style="text-align:center;">
+              <div class="donut-graphic" style="background:conic-gradient(var(--orange) 70%, rgba(255,255,255,0.08) 0)"><div class="center">70%</div></div>
+              <div style="font-size:12px;color:var(--orange);font-weight:700;">Risky</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="donut-graphic" style="background:conic-gradient(var(--amber) 60%, rgba(255,255,255,0.08) 0)"><div class="center">60%</div></div>
+              <div style="font-size:12px;color:var(--amber);font-weight:700;">Not Risky</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Diagnostic Labs</h3><div class="dropdown-btn" style="padding:6px 10px;font-size:12px;">March <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div></div>
+          <div style="display:flex;gap:24px;justify-content:center;">
+            <div style="text-align:center;">
+              <div class="donut-graphic" style="background:conic-gradient(var(--clay) 70%, rgba(255,255,255,0.08) 0)"><div class="center">70%</div></div>
+              <div style="font-size:12px;color:var(--clay);font-weight:700;">Risky</div>
+            </div>
+            <div style="text-align:center;">
+              <div class="donut-graphic" style="background:conic-gradient(var(--brown) 30%, rgba(255,255,255,0.08) 0)"><div class="center">30%</div></div>
+              <div style="font-size:12px;color:var(--brown);font-weight:700;">Not Risky</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prov-grid">
+        <div class="prov-tile">
+          <div class="prov-top"><div class="prov-name"><div class="prov-logo" style="background:var(--orange-deep);">AH</div>Apollo Hospitals</div><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="prov-meta"><span>Activity Type</span><span>Claims</span></div>
+          <div class="prov-meta"><b>Hospital</b><b>09</b></div>
+          <div class="prov-foot"><span style="font-size:11px;color:var(--text-faint);">04 days ago</span><span class="tag tag-new">New</span></div>
+        </div>
+        <div class="prov-tile">
+          <div class="prov-top"><div class="prov-name"><div class="prov-logo" style="background:var(--amber-deep);">FH</div>Fortis Healthcare</div><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="prov-meta"><span>Activity Type</span><span>Claims</span></div>
+          <div class="prov-meta"><b>Hospital</b><b>06</b></div>
+          <div class="prov-foot"><span style="font-size:11px;color:var(--text-faint);">04 days ago</span><span class="tag tag-risky">Risky</span></div>
+        </div>
+        <div class="prov-tile">
+          <div class="prov-top"><div class="prov-name"><div class="prov-logo" style="background:var(--brown-deep);">MH</div>Max Healthcare</div><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="prov-meta"><span>Activity Type</span><span>Claims</span></div>
+          <div class="prov-meta"><b>Hospital</b><b>09</b></div>
+          <div class="prov-foot"><span style="font-size:11px;color:var(--text-faint);">03 days ago</span><span class="tag tag-new">New</span></div>
+        </div>
+        <div class="prov-tile">
+          <div class="prov-top"><div class="prov-name"><div class="prov-logo" style="background:var(--clay);">MP</div>MedPlus Pharmacy</div><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="prov-meta"><span>Activity Type</span><span>Claims</span></div>
+          <div class="prov-meta"><b>Pharmacy</b><b>05</b></div>
+          <div class="prov-foot"><span style="font-size:11px;color:var(--text-faint);">03 days ago</span><span class="tag tag-new">New</span></div>
+        </div>
+        <div class="prov-tile">
+          <div class="prov-top"><div class="prov-name"><div class="prov-logo" style="background:var(--orange);">DL</div>Dr Lal PathLabs</div><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="prov-meta"><span>Activity Type</span><span>Claims</span></div>
+          <div class="prov-meta"><b>Diagnostics</b><b>04</b></div>
+          <div class="prov-foot"><span style="font-size:11px;color:var(--text-faint);">03 days ago</span><span class="tag tag-risky">Risky</span></div>
+        </div>
+        <div class="prov-tile">
+          <div class="prov-top"><div class="prov-name"><div class="prov-logo" style="background:var(--amber);">MT</div>Metropolis Labs</div><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="prov-meta"><span>Activity Type</span><span>Claims</span></div>
+          <div class="prov-meta"><b>Diagnostics</b><b>07</b></div>
+          <div class="prov-foot"><span style="font-size:11px;color:var(--text-faint);">02 days ago</span><span class="tag tag-new">New</span></div>
+        </div>
+        <div class="prov-tile">
+          <div class="prov-top"><div class="prov-name"><div class="prov-logo" style="background:var(--brown);">PR</div>Practo Consult</div><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="prov-meta"><span>Activity Type</span><span>Claims</span></div>
+          <div class="prov-meta"><b>Telemedicine</b><b>04</b></div>
+          <div class="prov-foot"><span style="font-size:11px;color:var(--text-faint);">02 days ago</span><span class="tag tag-risky">Risky</span></div>
+        </div>
+        <div class="prov-tile">
+          <div class="prov-top"><div class="prov-name"><div class="prov-logo" style="background:var(--orange-deep);">1M</div>1mg Pharmacy</div><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="prov-meta"><span>Activity Type</span><span>Claims</span></div>
+          <div class="prov-meta"><b>Pharmacy</b><b>07</b></div>
+          <div class="prov-foot"><span style="font-size:11px;color:var(--text-faint);">03 days ago</span><span class="tag tag-new">New</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: CLAIMANT BEHAVIOR ============ -->
+    <div class="page" id="page-behavior">
+      <div class="page-head">
+        <h1>Claimant Behavior</h1>
+        <div class="dropdown-btn">Add Claimant <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+      <div class="subtabs">
+        <div class="subtab active">Claimant Details</div>
+        <div class="subtab">Active Claimants</div>
+      </div>
+
+      <div class="row three" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
+        <div class="panel">
+          <div class="risk-break">
+            <div class="risk-break-ico warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+            <div><div style="font-weight:700;font-size:14px;">Break down of claimant risk</div><div style="font-size:12px;color:var(--text-faint);">Files impacting claimant risk</div></div>
+          </div>
+          <div class="risk-track"><div class="risk-fill warn" style="width:93%"></div></div>
+          <div class="risk-meta"><span></span><span>93 of 100</span></div>
+        </div>
+        <div class="panel">
+          <div class="risk-break">
+            <div class="risk-break-ico ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div><div style="font-weight:700;font-size:14px;">Break down of claimant risk</div><div style="font-size:12px;color:var(--text-faint);">Claims & policies</div></div>
+          </div>
+          <div class="risk-track"><div class="risk-fill ok" style="width:100%"></div></div>
+          <div class="risk-meta"><span></span><span>no risk</span></div>
+        </div>
+        <div class="panel">
+          <div class="risk-break">
+            <div class="risk-break-ico warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+            <div><div style="font-weight:700;font-size:14px;">Break down of claimant risk</div><div style="font-size:12px;color:var(--text-faint);">Network comparison</div></div>
+          </div>
+          <div class="risk-track"><div class="risk-fill warn" style="width:58%"></div></div>
+          <div class="risk-meta"><span></span><span>average</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>Claimant Overview</h3>
+            <div style="font-size:12px;color:var(--text-faint);margin-top:3px;">All calculated risk and behavior analysis are based on data from the last 30 days</div>
+          </div>
+          <div class="search-box" style="width:220px;margin-bottom:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9C8672" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="Search…"></div>
+        </div>
+        <table>
+          <thead><tr><th>Claimant risk</th><th>Claimant</th><th>Last active</th><th>Last claim channel</th><th>Suspicious events</th><th>Option</th></tr></thead>
+          <tbody>
+            <tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="segbar"><span class="seg on-high"></span><span class="seg on-low"></span><span class="seg on-low"></span></div>91</div></td><td>Ramesh Kumar</td><td>22 Mar 2026</td><td>App – Bajaj Health</td><td>21</td><td>⋮</td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="segbar"><span class="seg on-low"></span><span class="seg on-low"></span><span class="seg on-low"></span></div>90</div></td><td>Gunjan Edwards</td><td>24 Mar 2026</td><td>App – Bajaj Health</td><td>40</td><td>⋮</td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="segbar"><span class="seg on-low"></span><span class="seg on-low"></span><span class="seg on-low"></span></div>80</div></td><td>Rafiq Ahmed</td><td>26 Mar 2026</td><td>App – Bajaj Health</td><td>30</td><td>⋮</td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="segbar"><span class="seg on-high"></span><span class="seg on-high"></span><span class="seg on-high"></span></div>90</div></td><td>Anjali Rao</td><td>21 Mar 2026</td><td>App – Bajaj Health</td><td>10</td><td>⋮</td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="segbar"><span class="seg on-low"></span><span class="seg on-low"></span><span class="seg on-high"></span></div>20</div></td><td>Vikram Singh</td><td>20 Mar 2026</td><td>App – Bajaj Health</td><td>10</td><td>⋮</td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="segbar"><span class="seg on-high"></span><span class="seg on-low"></span><span class="seg on-low"></span></div>10</div></td><td>Priya Nair</td><td>26 Mar 2026</td><td>App – Bajaj Health</td><td>20</td><td>⋮</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: INVESTIGATIONS ============ -->
+    <div class="page" id="page-investigations">
+      <div class="page-head">
+        <h1>Investigations</h1>
+        <div class="dropdown-btn">New Case <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card card1">
+          <div class="stat-top"><div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>Open Cases</div></div>
+          <div class="stat-body"><div><div class="stat-num">18</div><div class="stat-sub">of 74 total</div></div><div class="mini-donut" style="background:conic-gradient(#fff 24%, rgba(255,255,255,0.28) 0)"><div class="hole">24%</div></div></div>
+        </div>
+        <div class="stat-card card2">
+          <div class="stat-top"><div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"/></svg></div>In Review</div></div>
+          <div class="stat-body"><div><div class="stat-num">11</div><div class="stat-sub">of 74 total</div></div><div class="mini-donut" style="background:conic-gradient(#fff 15%, rgba(255,255,255,0.28) 0)"><div class="hole">15%</div></div></div>
+        </div>
+        <div class="stat-card card3">
+          <div class="stat-top"><div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>Escalated</div></div>
+          <div class="stat-body"><div><div class="stat-num">03</div><div class="stat-sub">of 74 total</div></div><div class="mini-donut" style="background:conic-gradient(#fff 4%, rgba(255,255,255,0.28) 0)"><div class="hole">4%</div></div></div>
+        </div>
+        <div class="stat-card card4">
+          <div class="stat-top"><div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>Closed (30d)</div></div>
+          <div class="stat-body"><div><div class="stat-num">42</div><div class="stat-sub">of 74 total</div></div><div class="mini-donut" style="background:conic-gradient(#fff 57%, rgba(255,255,255,0.28) 0)"><div class="hole">57%</div></div></div>
+        </div>
+      </div>
+
+      <div class="row five" style="margin-bottom:16px;">
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Billing Fraud</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--orange) 65%, rgba(255,255,255,0.08) 0)"><div class="center">65%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--orange)"></i>Active</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Resolved</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Identity Fraud</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--amber) 40%, rgba(255,255,255,0.08) 0)"><div class="center">40%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--amber)"></i>Active</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Resolved</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Doc. Forgery</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--clay) 78%, rgba(255,255,255,0.08) 0)"><div class="center">78%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--clay)"></i>Active</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Resolved</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Duplicate Claims</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--brown) 30%, rgba(255,255,255,0.08) 0)"><div class="center">30%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--brown)"></i>Active</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Resolved</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Provider Collusion</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--orange-deep) 55%, rgba(255,255,255,0.08) 0)"><div class="center">55%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--orange-deep)"></i>Active</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Resolved</span></div>
+        </div>
+      </div>
+
+      <div class="row two" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-head"><h3>Investigator Workload</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="user-row"><div class="user-left"><div class="user-avatar">SK</div>Sarah K.</div><div class="user-count">9 cases</div></div>
+          <div class="user-row"><div class="user-left"><div class="user-avatar">MR</div>Mike R.</div><div class="user-count">6 cases</div></div>
+          <div class="user-row"><div class="user-left"><div class="user-avatar">NP</div>Nina P.</div><div class="user-count">5 cases</div></div>
+          <div class="user-row"><div class="user-left"><div class="user-avatar">JL</div>James L.</div><div class="user-count">4 cases</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Case Resolution Trend</h3><span class="date-pill">Last 30 days</span></div>
+          <div class="chart-wrap">
+            <div class="chart-tooltip" style="left:38%;"><div class="amt">4.2 days</div><div class="mon">avg resolution</div></div>
+            <svg viewBox="0 0 300 150" width="100%" height="150" preserveAspectRatio="none">
+              <defs><linearGradient id="g10" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C2540E" stop-opacity="0.55"/><stop offset="100%" stop-color="#C2540E" stop-opacity="0"/></linearGradient></defs>
+              <path d="M0,100 C30,70 60,120 90,90 C120,60 150,100 180,70 C210,40 240,80 270,55 L300,60 L300,150 L0,150 Z" fill="url(#g10)" stroke="#C2540E" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <div class="chart-axis"><span>Wk1</span><span>Wk2</span><span>Wk3</span><span>Wk4</span></div>
+        </div>
+      </div>
+
+      <div class="row split">
+        <div class="panel">
+          <div class="panel-head"><h3>Active Cases</h3><div class="export-btn">Export</div></div>
+          <table>
+            <thead><tr><th>Case ID</th><th>Claim ID</th><th>Claimant</th><th>Provider</th><th>Priority</th><th>Investigator</th><th>Status</th><th>Opened</th></tr></thead>
+            <tbody>
+              <tr><td>INV-2031</td><td>CLM-1092</td><td>Ramesh Kumar</td><td>Apollo Hospitals</td><td><span class="priority-pill priority-high">High</span></td><td>Sarah K.</td><td><span class="status-pill"><span class="status-dot review"></span>In Review</span></td><td>29 Mar 2026</td></tr>
+              <tr><td>INV-2028</td><td>CLM-1071</td><td>Rafiq Ahmed</td><td>Max Super Speciality</td><td><span class="priority-pill priority-high">High</span></td><td>Mike R.</td><td><span class="status-pill"><span class="status-dot open"></span>Open</span></td><td>25 Mar 2026</td></tr>
+              <tr><td>INV-2019</td><td>CLM-1054</td><td>Sunita Sharma</td><td>MedPlus Pharmacy</td><td><span class="priority-pill priority-med">Medium</span></td><td>Nina P.</td><td><span class="status-pill"><span class="status-dot closed"></span>Closed</span></td><td>18 Mar 2026</td></tr>
+              <tr><td>INV-2011</td><td>CLM-1042</td><td>Anjali Rao</td><td>Fortis Healthcare</td><td><span class="priority-pill priority-low">Low</span></td><td>James L.</td><td><span class="status-pill"><span class="status-dot closed"></span>Closed</span></td><td>10 Mar 2026</td></tr>
+              <tr><td>INV-2005</td><td>CLM-1030</td><td>Vikram Singh</td><td>Dr Lal PathLabs</td><td><span class="priority-pill priority-med">Medium</span></td><td>Sarah K.</td><td><span class="status-pill"><span class="status-dot open"></span>Open</span></td><td>06 Mar 2026</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Investigation Pipeline</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="pipeline-row"><div class="pipeline-label">Open</div><div class="pipeline-track"><div class="pipeline-fill" style="width:24%;background:var(--orange);"></div></div><div class="pipeline-count">18</div></div>
+          <div class="pipeline-row"><div class="pipeline-label">In Review</div><div class="pipeline-track"><div class="pipeline-fill" style="width:15%;background:var(--amber);"></div></div><div class="pipeline-count">11</div></div>
+          <div class="pipeline-row"><div class="pipeline-label">Escalated</div><div class="pipeline-track"><div class="pipeline-fill" style="width:4%;background:var(--clay);"></div></div><div class="pipeline-count">3</div></div>
+          <div class="pipeline-row"><div class="pipeline-label">Closed</div><div class="pipeline-track"><div class="pipeline-fill" style="width:57%;background:var(--safe);"></div></div><div class="pipeline-count">42</div></div>
+          <div class="setting-desc" style="margin-top:8px;">Pipeline counts reflect the last 30 days of case activity across all investigators.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: FRAUD RULES ============ -->
+    <div class="page" id="page-rules">
+      <div class="page-head">
+        <h1>Fraud Rules</h1>
+        <div class="dropdown-btn">Add Rule <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Active Rules</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div></div>
+          <div class="kpi-num">24</div><div class="kpi-delta flat">2 paused</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Triggered today</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M4 15l4-4 3 3 5-6 4 4"/></svg></div></div>
+          <div class="kpi-num">156</div><div class="kpi-delta up">▲ 9% vs yesterday</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Top rule (30d)</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div></div>
+          <div class="kpi-num" style="font-size:17px;">Income vs. sum insured</div><div class="kpi-delta flat">312 hits</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Auto-blocked claims</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg></div></div>
+          <div class="kpi-num">12</div><div class="kpi-delta down">▲ needs sign-off</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Rule Engine</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+
+        <div class="rule-row">
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          <div style="flex:1;">
+            <div class="rule-name">Income-to-Sum-Insured Mismatch</div>
+            <div class="rule-cond">Sum insured &gt; 25× annual income <span class="rule-arrow">→</span> <span class="rule-action">Flag for review</span></div>
+          </div>
+          <div class="rule-hits">312 hits</div>
+        </div>
+        <div class="rule-row">
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          <div style="flex:1;">
+            <div class="rule-name">High Frequency Claims</div>
+            <div class="rule-cond">More than 2 past claims in 12 months <span class="rule-arrow">→</span> <span class="rule-action">Escalate to investigator</span></div>
+          </div>
+          <div class="rule-hits">189 hits</div>
+        </div>
+        <div class="rule-row">
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          <div style="flex:1;">
+            <div class="rule-name">Document Tampering Signature</div>
+            <div class="rule-cond">Uploaded EXIF shows editing software <span class="rule-arrow">→</span> <span class="rule-action">Auto-reject upload</span></div>
+          </div>
+          <div class="rule-hits">96 hits</div>
+        </div>
+        <div class="rule-row">
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          <div style="flex:1;">
+            <div class="rule-name">Suspicious Filename Pattern</div>
+            <div class="rule-cond">Filename suggests screenshot or messenger transfer <span class="rule-arrow">→</span> <span class="rule-action">Flag for manual check</span></div>
+          </div>
+          <div class="rule-hits">58 hits</div>
+        </div>
+        <div class="rule-row">
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          <div style="flex:1;">
+            <div class="rule-name">Zero Sum Insured</div>
+            <div class="rule-cond">Sum insured recorded as ₹0 at claim time <span class="rule-arrow">→</span> <span class="rule-action">Flag for review</span></div>
+          </div>
+          <div class="rule-hits">47 hits</div>
+        </div>
+        <div class="rule-row">
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          <div style="flex:1;">
+            <div class="rule-name">New Policy Rapid Claim</div>
+            <div class="rule-cond">Claim filed within 30 days of policy issue <span class="rule-arrow">→</span> <span class="rule-action">Escalate to investigator</span></div>
+          </div>
+          <div class="rule-hits">24 hits</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: RISK SCORING ============ -->
+    <div class="page" id="page-scoring">
+      <div class="page-head">
+        <h1>Risk Scoring</h1>
+        <div class="dropdown-btn">Retrain Models <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Ensemble Accuracy</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div></div>
+          <div class="kpi-num">99.7%</div><div class="kpi-delta up">▲ 0.2% since last training</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">F1-score</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l4-8 4 5 3-4 7 7"/></svg></div></div>
+          <div class="kpi-num">0.95</div><div class="kpi-delta flat">stable</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">AUC-ROC</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></div></div>
+          <div class="kpi-num">0.97</div><div class="kpi-delta flat">stable</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Training time</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></div></div>
+          <div class="kpi-num">224s</div><div class="kpi-delta flat">on full dataset</div>
+        </div>
+      </div>
+
+      <div class="row split" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-head"><h3>Feature Importance (SHAP)</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="bar-row"><div class="bar-label">Claim Amount</div><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Past Claims</div><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Policy Duration</div><div class="bar-track"><div class="bar-fill" style="width:66%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Incident Type</div><div class="bar-track"><div class="bar-fill" style="width:54%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Claimant Age</div><div class="bar-track"><div class="bar-fill" style="width:41%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Deductible</div><div class="bar-track"><div class="bar-fill" style="width:29%"></div></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Model Status</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="model-row"><div class="model-left"><span class="model-dot"></span><div><div class="model-name">Random Forest</div><div class="model-type">Supervised classifier</div></div></div><div class="model-metric">0.997</div></div>
+          <div class="model-row"><div class="model-left"><span class="model-dot"></span><div><div class="model-name">XGBoost</div><div class="model-type">Supervised classifier</div></div></div><div class="model-metric">0.996</div></div>
+          <div class="model-row"><div class="model-left"><span class="model-dot"></span><div><div class="model-name">Logistic Regression</div><div class="model-type">Supervised classifier</div></div></div><div class="model-metric">0.961</div></div>
+          <div class="model-row"><div class="model-left"><span class="model-dot"></span><div><div class="model-name">Isolation Forest</div><div class="model-type">Anomaly detector</div></div></div><div class="model-metric">Active</div></div>
+          <div class="model-row"><div class="model-left"><span class="model-dot"></span><div><div class="model-name">One-Class SVM</div><div class="model-type">Anomaly detector</div></div></div><div class="model-metric">Active</div></div>
+          <div class="model-row"><div class="model-left"><span class="model-dot"></span><div><div class="model-name">Autoencoder</div><div class="model-type">Anomaly detector · threshold 0.986</div></div></div><div class="model-metric">Active</div></div>
+          <div class="model-row"><div class="model-left"><span class="model-dot paused"></span><div><div class="model-name">Document CNN</div><div class="model-type">Forensics · awaiting training data</div></div></div><div class="model-metric">Paused</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Risk Score Distribution</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+        <div class="bar-row"><div class="bar-label">Low (0–30)</div><div class="bar-track"><div class="bar-fill" style="width:58%;background:var(--safe);"></div></div></div>
+        <div class="bar-row"><div class="bar-label">Medium (31–60)</div><div class="bar-track"><div class="bar-fill" style="width:27%;background:var(--amber);"></div></div></div>
+        <div class="bar-row"><div class="bar-label">High (61–85)</div><div class="bar-track"><div class="bar-fill" style="width:11%;background:var(--orange);"></div></div></div>
+        <div class="bar-row"><div class="bar-label">Critical (86–100)</div><div class="bar-track"><div class="bar-fill" style="width:4%;background:var(--orange-deep);"></div></div></div>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: ALERTS ============ -->
+    <div class="page" id="page-alerts">
+      <div class="page-head">
+        <h1>Alert Center</h1>
+        <div class="dropdown-btn">Configure Alerts <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Open Alerts</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></div></div>
+          <div class="kpi-num">45</div><div class="kpi-delta down">▲ 6 critical</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Reviewing</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"/></svg></div></div>
+          <div class="kpi-num">12</div><div class="kpi-delta flat">assigned to investigators</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Resolved this week</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div></div>
+          <div class="kpi-num">28</div><div class="kpi-delta up">▲ 15% vs last week</div>
+        </div>
+        <div class="kpi-tile">
+          <div class="kpi-top"><span class="kpi-label">Critical alerts</span><div class="kpi-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div></div>
+          <div class="kpi-num">6</div><div class="kpi-delta down">risk score ≥ 90</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Fraud Alerts</h3><div class="export-btn">Export</div></div>
+        <table>
+          <thead><tr><th>Alert ID</th><th>Claim ID</th><th>Fraud Type</th><th>Risk Score</th><th>Status</th><th>Claimant</th><th>Amount</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr class="alert-row"><td>ALT-9812</td><td>CLM-1092</td><td>Claim Inflation</td><td><span class="risk-pill risk-high">94</span></td><td><span class="status-pill"><span class="status-dot open"></span>Open</span></td><td>Ramesh Kumar</td><td>₹15,400</td><td><button class="btn-resolve">Resolve</button></td></tr>
+            <tr class="alert-row"><td>ALT-9811</td><td>CLM-1087</td><td>Identity Theft</td><td><span class="risk-pill risk-high">88</span></td><td><span class="status-pill"><span class="status-dot review"></span>Reviewing</span></td><td>Sunita Sharma</td><td>₹4,200</td><td><button class="btn-resolve">Resolve</button></td></tr>
+            <tr class="alert-row"><td>ALRT-3F9A2C</td><td>CLM-1071</td><td>Documentation Forgery</td><td><span class="risk-pill risk-high">91</span></td><td><span class="status-pill"><span class="status-dot open"></span>Open</span></td><td>Rafiq Ahmed</td><td>₹22,000</td><td><button class="btn-resolve">Resolve</button></td></tr>
+            <tr class="alert-row"><td>ALRT-7B1D45</td><td>CLM-1054</td><td>Duplicate Claim</td><td><span class="risk-pill risk-med">63</span></td><td><span class="status-pill"><span class="status-dot review"></span>Reviewing</span></td><td>Anjali Rao</td><td>₹8,900</td><td><button class="btn-resolve">Resolve</button></td></tr>
+            <tr class="alert-row"><td>ALRT-9E2A11</td><td>CLM-1042</td><td>Premium Fraud</td><td><span class="risk-pill risk-low">55</span></td><td><span class="status-pill"><span class="status-dot closed"></span>Resolved</span></td><td>Vikram Singh</td><td>₹12,300</td><td><button class="btn-resolved">Resolved ✓</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ PAGE: DPDP RIGHTS CENTER ============ -->
+    <div class="page" id="page-dpdp">
+      <div class="page-head">
+        <h1>DPDP Rights Center</h1>
+        <div class="dropdown-btn">New Data Request <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+
+      <div class="panel" style="margin-bottom:20px;display:flex;align-items:center;gap:14px;">
+        <div class="setting-ico" style="width:40px;height:40px;flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div>
+        <div>
+          <div style="font-weight:700;font-size:14.5px;">Digital Personal Data Protection Act, 2023</div>
+          <div style="font-size:12.5px;color:var(--text-faint);line-height:1.5;">
+            This center lets every claimant and policyholder exercise their rights as a Data Principal —
+            access, correction, erasure, consent withdrawal, grievance redressal and nomination — directly
+            through BharatShield AI, with request status and SLA timelines tracked automatically.
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card card1">
+          <div class="stat-top"><div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>Active Consents</div></div>
+          <div class="stat-body"><div><div class="stat-num">8,412</div><div class="stat-sub">of 9,120 total</div></div><div class="mini-donut" style="background:conic-gradient(#fff 92%, rgba(255,255,255,0.28) 0)"><div class="hole">92%</div></div></div>
+        </div>
+        <div class="stat-card card2">
+          <div class="stat-top"><div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>Pending DSR Requests</div></div>
+          <div class="stat-body"><div><div class="stat-num">14</div><div class="stat-sub">of 58 this month</div></div><div class="mini-donut" style="background:conic-gradient(#fff 24%, rgba(255,255,255,0.28) 0)"><div class="hole">24%</div></div></div>
+        </div>
+        <div class="stat-card card3">
+          <div class="stat-top"><div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></div>Resolved Within SLA</div></div>
+          <div class="stat-body"><div><div class="stat-num">56</div><div class="stat-sub">of 58 this month</div></div><div class="mini-donut" style="background:conic-gradient(#fff 96%, rgba(255,255,255,0.28) 0)"><div class="hole">96%</div></div></div>
+        </div>
+        <div class="stat-card card4">
+          <div class="stat-top"><div class="stat-title"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L2.8 17a2 2 0 001.7 3h15a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>Open Breach Incidents</div></div>
+          <div class="stat-body"><div><div class="stat-num">0</div><div class="stat-sub">of 3 (90 days)</div></div><div class="mini-donut" style="background:conic-gradient(#fff 0%, rgba(255,255,255,0.28) 0)"><div class="hole">0%</div></div></div>
+        </div>
+      </div>
+
+      <div class="row five" style="margin-bottom:16px;">
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Claims Processing</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--safe) 96%, rgba(255,255,255,0.08) 0)"><div class="center">96%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--safe)"></i>Consented</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Withdrawn</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Risk &amp; Fraud Scoring</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--amber) 88%, rgba(255,255,255,0.08) 0)"><div class="center">88%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--amber)"></i>Consented</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Withdrawn</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Policy Servicing</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--orange) 94%, rgba(255,255,255,0.08) 0)"><div class="center">94%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--orange)"></i>Consented</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Withdrawn</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Marketing Comms.</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--clay) 41%, rgba(255,255,255,0.08) 0)"><div class="center">41%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--clay)"></i>Consented</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Withdrawn</span></div>
+        </div>
+        <div class="panel donut-card">
+          <div class="panel-head"><h3>Third-party Sharing</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="donut-graphic" style="background:conic-gradient(var(--orange-deep) 52%, rgba(255,255,255,0.08) 0)"><div class="center">52%</div></div>
+          <div class="legend"><span><i class="dot" style="background:var(--orange-deep)"></i>Consented</span><span><i class="dot" style="background:rgba(255,255,255,0.15)"></i>Withdrawn</span></div>
+        </div>
+      </div>
+
+      <div class="row two" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-head"><h3>Requests by Right Type (30d)</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="bar-row"><div class="bar-label">Right to Access</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Right to Correction</div><div class="bar-track"><div class="bar-fill" style="width:64%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Grievance Redressal</div><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Right to Erasure</div><div class="bar-track"><div class="bar-fill" style="width:41%"></div></div></div>
+          <div class="bar-row"><div class="bar-label">Right to Nominate</div><div class="bar-track"><div class="bar-fill" style="width:9%"></div></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>DSR Volume Trend</h3><span class="date-pill">Last 4 weeks</span></div>
+          <div class="chart-wrap">
+            <div class="chart-tooltip" style="left:38%;"><div class="amt">14</div><div class="mon">pending now</div></div>
+            <svg viewBox="0 0 300 150" width="100%" height="150" preserveAspectRatio="none">
+              <defs><linearGradient id="g20" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F2A93B" stop-opacity="0.55"/><stop offset="100%" stop-color="#F2A93B" stop-opacity="0"/></linearGradient></defs>
+              <path d="M0,110 C30,90 60,120 90,80 C120,50 150,90 180,60 C210,40 240,70 270,45 L300,55 L300,150 L0,150 Z" fill="url(#g20)" stroke="#F2A93B" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <div class="chart-axis"><span>Wk1</span><span>Wk2</span><span>Wk3</span><span>Wk4</span></div>
+        </div>
+      </div>
+
+      <div class="row two" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-head"><h3>DPDP Compliance Checklist</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="setting-item">
+            <div class="setting-ico" style="background:rgba(87,196,138,0.14);color:var(--safe);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div style="flex:1;"><div class="setting-title">Notice given at collection<span class="tag tag-new">Complete</span></div><div class="setting-desc">Clear notice shown to every data principal before consent capture.</div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-ico" style="background:rgba(87,196,138,0.14);color:var(--safe);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div style="flex:1;"><div class="setting-title">Purpose limitation enforced<span class="tag tag-new">Complete</span></div><div class="setting-desc">Data used only for the purpose consent was collected for.</div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-ico" style="background:rgba(242,169,59,0.14);color:var(--amber);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></div>
+            <div style="flex:1;"><div class="setting-title">Consent Manager integration<span class="tag tag-risky">In Progress</span></div><div class="setting-desc">Connecting to a registered Consent Manager under DPDP Rules.</div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-ico" style="background:rgba(87,196,138,0.14);color:var(--safe);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div style="flex:1;"><div class="setting-title">Grievance Officer appointed<span class="tag tag-new">Complete</span></div><div class="setting-desc">Named officer publicly listed for all grievance escalations.</div></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-ico" style="background:rgba(242,169,59,0.14);color:var(--amber);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></div>
+            <div style="flex:1;"><div class="setting-title">Breach notification workflow (72 hrs)<span class="tag tag-risky">In Progress</span></div><div class="setting-desc">Automated alert to Data Protection Board within statutory window.</div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Grievance Turnaround vs SLA</h3><span style="color:var(--text-faint);cursor:pointer;">⋮</span></div>
+          <div class="pipeline-row"><div class="pipeline-label">Access</div><div class="pipeline-track"><div class="pipeline-fill" style="width:11%;background:var(--safe);"></div></div><div class="pipeline-count">3d</div></div>
+          <div class="pipeline-row"><div class="pipeline-label">Correction</div><div class="pipeline-track"><div class="pipeline-fill" style="width:17%;background:var(--amber);"></div></div><div class="pipeline-count">5d</div></div>
+          <div class="pipeline-row"><div class="pipeline-label">Erasure</div><div class="pipeline-track"><div class="pipeline-fill" style="width:23%;background:var(--orange);"></div></div><div class="pipeline-count">7d</div></div>
+          <div class="pipeline-row"><div class="pipeline-label">Grievance</div><div class="pipeline-track"><div class="pipeline-fill" style="width:30%;background:var(--clay);"></div></div><div class="pipeline-count">9d</div></div>
+          <div class="setting-desc" style="margin-top:8px;">Bars show average days used against the internal 30-day SLA target for each request type.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Data Principal Request Queue</h3><div class="export-btn">Export</div></div>
+        <table>
+          <thead><tr><th>Request ID</th><th>Right Type</th><th>Data Principal</th><th>Submitted</th><th>SLA Due</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>DPR-3021</td><td><span class="priority-pill" style="background:rgba(87,196,138,0.16);color:var(--safe);">Access</span></td><td>Ramesh Kumar</td><td>02 Apr 2026</td><td>02 May 2026</td><td><span class="status-pill"><span class="status-dot open"></span>Open</span></td><td><button class="btn-resolve">View</button></td></tr>
+            <tr><td>DPR-3019</td><td><span class="priority-pill" style="background:rgba(255,122,61,0.16);color:var(--orange);">Erasure</span></td><td>Sunita Sharma</td><td>30 Mar 2026</td><td>29 Apr 2026</td><td><span class="status-pill"><span class="status-dot review"></span>In Review</span></td><td><button class="btn-resolve">View</button></td></tr>
+            <tr><td>DPR-3014</td><td><span class="priority-pill" style="background:rgba(217,107,58,0.18);color:var(--clay);">Grievance</span></td><td>Rafiq Ahmed</td><td>25 Mar 2026</td><td>24 Apr 2026</td><td><span class="status-pill"><span class="status-dot" style="background:var(--clay);"></span>Escalated</span></td><td><button class="btn-resolve">View</button></td></tr>
+            <tr><td>DPR-3009</td><td><span class="priority-pill" style="background:rgba(242,169,59,0.16);color:var(--amber);">Correction</span></td><td>Anjali Rao</td><td>18 Mar 2026</td><td>17 Apr 2026</td><td><span class="status-pill"><span class="status-dot closed"></span>Resolved</span></td><td><button class="btn-resolved">Resolved ✓</button></td></tr>
+            <tr><td>DPR-3002</td><td><span class="priority-pill" style="background:rgba(138,90,52,0.22);color:var(--brown);">Nominate</span></td><td>Vikram Singh</td><td>10 Mar 2026</td><td>09 Apr 2026</td><td><span class="status-pill"><span class="status-dot closed"></span>Resolved</span></td><td><button class="btn-resolved">Resolved ✓</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const navItems = document.querySelectorAll('.nav-item[data-page]');
+  const pages = document.querySelectorAll('.page');
+  navItems.forEach(item=>{
+    item.addEventListener('click', ()=>{
+      navItems.forEach(n=>n.classList.remove('active'));
+      item.classList.add('active');
+      pages.forEach(p=>p.classList.remove('active'));
+      document.getElementById('page-'+item.dataset.page).classList.add('active');
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+  document.querySelectorAll('.subtabs').forEach(group=>{
+    const tabs = group.querySelectorAll('.subtab');
+    tabs.forEach(t=>t.addEventListener('click',()=>{
+      tabs.forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+    }));
+  });
+</script>
+</body>
+</html>

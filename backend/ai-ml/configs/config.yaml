@@ -1,0 +1,40 @@
+project:
+  name: BharatShield AI
+  seed: 42
+  version: "1.0"
+
+data:
+  input_workbook: "Fraud_data_FY_2023-24.xlsx"
+  sheet: "Fraud data"
+  target: "Fraud Category"
+  test_size: 0.20
+  validation_size: 0.20
+
+tabular:
+  classifier: xgboost
+  objective: multi:softprob
+  eval_metric: mlogloss
+  class_weight: balanced
+  n_estimators: 400
+  max_depth: 6
+  learning_rate: 0.05
+  subsample: 0.85
+  colsample_bytree: 0.85
+
+anomaly:
+  contamination: auto
+  model: isolation_forest
+
+cv:
+  image_size: 224
+  batch_size: 32
+  epochs: 20
+  backbone: resnet18
+  classes: ["genuine", "forged"]
+
+nlp:
+  model_name: microsoft/layoutlmv3-base
+
+graph:
+  node_types: ["policyholder", "claim", "provider", "agent", "bank", "hospital"]
+  framework: networkx
