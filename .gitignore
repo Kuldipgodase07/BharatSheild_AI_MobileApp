@@ -27,6 +27,7 @@ logs/
 
 # Android & Capacitor build artifacts
 frontend/dist/
+frontend/package-lock.json
 android/.gradle/
 android/app/build/
 android/build/

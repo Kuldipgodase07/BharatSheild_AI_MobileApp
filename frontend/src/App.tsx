@@ -2670,6 +2670,49 @@ function DocScanScreen({ onClose }: { onClose:()=>void }) {
   const [filedClaimId, setFiledClaimId] = useState<string | null>(null)
   const [customProvider, setCustomProvider] = useState('Apollo Multi-spec Hospital')
   const [customAmount, setCustomAmount] = useState('1,45,000')
+  const [capturedImage, setCapturedImage] = useState<string | null>(null)
+
+  const handleTakePhoto = async () => {
+    try {
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera')
+      const photo = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+      })
+
+      if (photo?.dataUrl) {
+        setCapturedImage(photo.dataUrl)
+        if (!selected) {
+          setSelected('bill')
+        }
+        toast('Document captured via HD Camera')
+      }
+    } catch (err: any) {
+      console.warn('[Camera error/dismissed]', err)
+      if (err?.message !== 'User cancelled photos app' && !err?.message?.includes('cancelled')) {
+        // Fallback for desktop testing or browser file picker
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = 'image/*,application/pdf'
+        input.capture = 'environment'
+        input.onchange = (e: any) => {
+          const file = e.target?.files?.[0]
+          if (file) {
+            const reader = new FileReader()
+            reader.onload = (re) => {
+              setCapturedImage(re.target?.result as string)
+              if (!selected) setSelected('bill')
+              toast('Document image loaded')
+            }
+            reader.readAsDataURL(file)
+          }
+        }
+        input.click()
+      }
+    }
+  }
 
   const STAGES = [
     'Initializing Neural Forensics & CNN…',
@@ -2694,8 +2737,9 @@ function DocScanScreen({ onClose }: { onClose:()=>void }) {
       docType: selected,
       provider: customProvider,
       claimAmount: customAmount,
-      patientName: 'Sanjay Deshmukh'
-    }).then(res => {
+      patientName: 'Sanjay Deshmukh',
+      ...(capturedImage ? { imageBase64: capturedImage } : {})
+    } as any).then(res => {
       backendPayload = res?.analysis || res
     }).catch(err => {
       console.warn("Using local forensic fallback", err)
@@ -2719,7 +2763,7 @@ function DocScanScreen({ onClose }: { onClose:()=>void }) {
         setTimeout(() => setStep('result'), 250)
       }
     }, 120)
-  }, [selected, customProvider, customAmount])
+  }, [selected, customProvider, customAmount, capturedImage])
 
   const staticFallback = selected ? SCAN_RESULTS[selected] : null
   const score = aiResult?.authenticityScore ?? (aiResult?.fraudScore ? Math.max(10, 100 - aiResult.fraudScore) : staticFallback?.score ?? 78)
@@ -2827,9 +2871,20 @@ function DocScanScreen({ onClose }: { onClose:()=>void }) {
             </div>
           </div>
 
+          {capturedImage && (
+            <div style={{ background:C.card2, border:`1px solid ${C.orange}`, borderRadius:14, padding:'10px 14px', marginBottom:14, display:'flex', alignItems:'center', gap:12 }}>
+              <img src={capturedImage} alt="Captured preview" style={{ width:44, height:44, borderRadius:8, objectFit:'cover', border:`1px solid ${C.borderStrong}` }} />
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:12.5, fontWeight:700, color:C.text }}>Document Image Ready</div>
+                <div style={{ fontSize:11, color:C.faint }}>Attached for AI Vision & OCR audit</div>
+              </div>
+              <button onClick={()=>setCapturedImage(null)} style={{ background:'rgba(255,255,255,0.06)', border:'none', color:C.faint, borderRadius:8, padding:'4px 8px', fontSize:11, cursor:'pointer' }}>Remove</button>
+            </div>
+          )}
+
           <div style={{ display:'flex', gap:10 }}>
-            <PressBtn style={{ flex:1, background:C.card2, border:`1px solid ${C.borderStrong}`, borderRadius:14, padding:'14px', fontSize:13.5, fontWeight:600, color:C.dim, gap:8 }}>
-              {Ic.camera} Camera
+            <PressBtn onClick={handleTakePhoto} style={{ flex:1, background:C.card2, border:`1px solid ${capturedImage?C.orange:C.borderStrong}`, borderRadius:14, padding:'14px', fontSize:13.5, fontWeight:600, color:capturedImage?C.orange:C.dim, gap:8, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+              {Ic.camera} {capturedImage ? 'Retake' : 'Camera'}
             </PressBtn>
             <PressBtn onClick={startScan} style={{ flex:2, background:selected?C.grad:'rgba(255,122,61,0.15)', borderRadius:14, padding:'14px', fontSize:14, fontWeight:700, color:selected?'#fff':C.faint, boxShadow:selected?'0 8px 24px rgba(194,84,14,0.38)':'none', transition:'all .2s', pointerEvents:selected?'all':'none' }}>
               {selected?'Analyze Document →':'Select type first'}
@@ -2849,15 +2904,19 @@ function DocScanScreen({ onClose }: { onClose:()=>void }) {
             })}
 
             {/* Scan line */}
-            <div style={{ position:'absolute', left:0, right:0, height:2.5, background:`linear-gradient(90deg,transparent,${C.orange},transparent)`, top:`${scanPct}%`, boxShadow:`0 0 16px ${C.orange}, 0 0 4px ${C.orange}`, zIndex:2 }}/>
-            <div style={{ position:'absolute', inset:0, background:`linear-gradient(180deg,transparent ${Math.max(0,scanPct-15)}%,rgba(255,122,61,0.06) ${scanPct}%,transparent ${Math.min(100,scanPct+15)}%)`, zIndex:1 }}/>
+            <div style={{ position:'absolute', left:0, right:0, height:2.5, background:`linear-gradient(90deg,transparent,${C.orange},transparent)`, top:`${scanPct}%`, boxShadow:`0 0 16px ${C.orange}, 0 0 4px ${C.orange}`, zIndex:4 }}/>
+            <div style={{ position:'absolute', inset:0, background:`linear-gradient(180deg,transparent ${Math.max(0,scanPct-15)}%,rgba(255,122,61,0.06) ${scanPct}%,transparent ${Math.min(100,scanPct+15)}%)`, zIndex:2 }}/>
 
-            {/* Doc content mock */}
-            <div style={{ padding:20, position:'relative', zIndex:0 }}>
-              {[40,28,36,22,30,28,24,34,20].map((w,i)=>(
-                <div key={i} style={{ height:6, borderRadius:3, background:'rgba(255,255,255,0.08)', marginBottom:10, width:`${w}px` }}/>
-              ))}
-            </div>
+            {/* Doc content or Captured Photo */}
+            {capturedImage ? (
+              <img src={capturedImage} alt="Scanning doc" style={{ width:'100%', height:'100%', objectFit:'cover', filter:'brightness(0.85) contrast(1.05)' }} />
+            ) : (
+              <div style={{ padding:20, position:'relative', zIndex:0 }}>
+                {[40,28,36,22,30,28,24,34,20].map((w,i)=>(
+                  <div key={i} style={{ height:6, borderRadius:3, background:'rgba(255,255,255,0.08)', marginBottom:10, width:`${w}px` }}/>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ fontSize:23, fontWeight:800, color:C.text, marginBottom:8, textAlign:'center' }}>AI Scanning…</div>

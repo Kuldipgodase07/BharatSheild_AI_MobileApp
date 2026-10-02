@@ -17,8 +17,11 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
+    "@capacitor/camera": "^8.2.5",
     "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.4",
+    "@capacitor/share": "^8.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.5",
     "exceljs": "^4.4.0",

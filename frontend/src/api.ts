@@ -214,16 +214,9 @@ export async function apiChatWithGemini(query: string, role?: string, claimConte
 export async function downloadExcelReportFile(clientFallbackClaims?: any[]) {
   try {
     const res = await fetch('/api/reports/excel');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `BharatShield_Forensic_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => window.URL.revokeObjectURL(url), 2000);
+    const { saveBlobFile } = await import('./reports');
+    await saveBlobFile(blob, `BharatShield_Forensic_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
   } catch (e) {
     console.warn('[Backend Excel unavailable, generating locally via ExcelJS]', e);
     try {
@@ -259,14 +252,8 @@ export async function downloadPdfReportFile(clientFallbackClaims?: any[]) {
     const res = await fetch('/api/reports/pdf');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `BharatShield_Fraud_Dossier_${new Date().toISOString().slice(0, 10)}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => window.URL.revokeObjectURL(url), 2000);
+    const { saveBlobFile } = await import('./reports');
+    await saveBlobFile(blob, `BharatShield_Fraud_Dossier_${new Date().toISOString().slice(0, 10)}.pdf`);
   } catch (e) {
     console.warn('[Backend PDF unavailable, generating locally via jsPDF]', e);
     try {

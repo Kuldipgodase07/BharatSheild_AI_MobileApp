@@ -55,13 +55,60 @@ export function buildReport(kind: ReportKind, period: string, src: ReportSource)
   }
 }
 
-const save = (blob: Blob, name: string) => {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url; a.download = name
-  document.body.appendChild(a); a.click(); a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 2000)
+import { Capacitor } from '@capacitor/core'
+import { Filesystem, Directory } from '@capacitor/filesystem'
+import { Share } from '@capacitor/share'
+
+export const saveBlobFile = async (blob: Blob, name: string): Promise<boolean> => {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          const res = reader.result as string
+          const base64 = res.includes(',') ? res.split(',')[1] : res
+          resolve(base64)
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+      })
+
+      const fileResult = await Filesystem.writeFile({
+        path: name,
+        data: base64Data,
+        directory: Directory.Cache,
+        recursive: true
+      })
+
+      await Share.share({
+        title: name,
+        text: `BharatShield AI Forensic Dossier - ${name}`,
+        url: fileResult.uri,
+        dialogTitle: `Save or Open ${name}`
+      })
+      return true
+    }
+  } catch (nativeErr) {
+    console.warn('[Native file save/share fallback]', nativeErr)
+  }
+
+  // Web fallback
+  try {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = name
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 4000)
+    return true
+  } catch (err) {
+    console.error('[Web file save error]', err)
+    return false
+  }
 }
+
 
 export async function downloadReport(data: ReportData, fmt: ReportFormat, fileBase: string) {
   if (fmt === 'pdf') {
@@ -196,7 +243,8 @@ export async function downloadReport(data: ReportData, fmt: ReportFormat, fileBa
       doc.text(`Page ${i} of ${totalPages}`, W - 40, H - 18, { align: 'right' })
     }
 
-    doc.save(`${fileBase}.pdf`)
+    const pdfBlob = doc.output('blob')
+    await saveBlobFile(pdfBlob, `${fileBase}.pdf`)
   } else {
     // ── Excel Report (Theme: BharatShield Obsidian & Imperial Gold) ────────
     const ExcelJS = await import('exceljs')
@@ -281,6 +329,6 @@ export async function downloadReport(data: ReportData, fmt: ReportFormat, fileBa
     })
 
     const buf = await wb.xlsx.writeBuffer()
-    save(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `${fileBase}.xlsx`)
+    await saveBlobFile(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `${fileBase}.xlsx`)
   }
 }
