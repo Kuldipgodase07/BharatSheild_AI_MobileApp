@@ -970,7 +970,7 @@ function DashboardScreen({ onOpenScan }: { onOpenScan:()=>void }) {
       }))
 
   return (
-    <div style={{ flex:1, overflowY:'auto', padding:'0 16px 110px' }}>
+    <div style={{ padding:'0 16px' }}>
       <ThreatHero/>
 
       {/* ── Quick Stats Strip (Real-time National Network) ────────────────── */}
@@ -1211,7 +1211,7 @@ function ClaimsScreen({ onNew }: { onNew:()=>void }) {
   const totalAtRisk = filtered.reduce((sum,c)=>sum+(c.financials?.billedAmount||0),0)
 
   return (
-    <div style={{ flex:1, overflowY:'auto', padding:'0 16px 110px' }}>
+    <div style={{ padding:'0 16px' }}>
       {/* Header */}
       <div style={{ marginBottom:16 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
@@ -1898,7 +1898,7 @@ function AnalyticsScreen() {
   ]
 
   return (
-    <div style={{ flex:1, overflowY:'auto', padding:'0 16px 110px' }}>
+    <div style={{ padding:'0 16px' }}>
       <div style={{ marginBottom:16 }}>
         <div style={{ fontSize:20, fontWeight:800, color:C.text }}>AI Intelligence</div>
         <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4 }}>
@@ -2101,7 +2101,7 @@ function AlertsScreen() {
   }
 
   return (
-    <div style={{ flex:1, overflowY:'auto', padding:'0 16px 110px' }}>
+    <div style={{ padding:'0 16px' }}>
       {/* Header */}
       <div style={{ marginBottom:16 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
@@ -2575,7 +2575,7 @@ function ProfileScreen({ onLogout }: { onLogout:()=>void }) {
   const granted = role.perms.length
 
   return (
-    <div style={{ flex:1, overflowY:'auto', paddingBottom:110 }}>
+    <div>
       <div style={{ background:`linear-gradient(145deg,${role.color}22,#1C110A 65%)`, margin:'0 16px 14px', borderRadius:24, padding:20, border:`1px solid ${role.color}44`, position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:-40, right:-40, width:160, height:160, borderRadius:'50%', background:`${role.color}12` }}/>
         <div style={{ display:'flex', alignItems:'center', gap:14, position:'relative', marginBottom:16 }}>
@@ -3019,7 +3019,7 @@ function TopBar({ tab, onProfile, onBell, unread }: { tab:Tab; onProfile:()=>voi
   }
   const show = tab === 'dashboard'
   return (
-    <div style={{ background:C.sidebar, borderBottom:`1px solid ${C.border}`, paddingTop:42, paddingBottom:show?16:12, paddingLeft:18, paddingRight:18, flexShrink:0, transition:'padding .3s' }}>
+    <div style={{ background:C.sidebar, borderBottom:`1px solid ${C.border}`, paddingTop:'max(42px, env(safe-area-inset-top, 42px))', paddingBottom:show?16:12, paddingLeft:18, paddingRight:18, marginBottom:14, flexShrink:0, transition:'padding .3s' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:show?10:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <div style={{ width:32, height:32, borderRadius:9, background:C.grad, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:'0 4px 12px rgba(194,84,14,0.4)' }}>
@@ -3117,14 +3117,26 @@ function MainApp({ onLogout }: { onLogout:()=>void }) {
   if (scanOpen) return <DocScanScreen onClose={()=>setScanOpen(false)}/>
 
   return (
-    <div style={{ position:'absolute', inset:0, background:C.bg, display:'flex', flexDirection:'column' }}>
-      <TopBar tab={tab} onProfile={()=>setTab('profile')} onBell={()=>setNotifOpen(true)} unread={NOTIFS.filter(n=>!read.includes(n.id)).length}/>
-      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', animation:'bs-fadein .3s ease-out' }} key={tab}>
-        {tab==='dashboard'  && <DashboardScreen onOpenScan={openScan}/>}
-        {tab==='claims'     && <ClaimsScreen onNew={()=>guard('submit_claim','Submit claim',()=>setNewClaim(true))}/>}
-        {tab==='analytics'  && <AnalyticsScreen/>}
-        {tab==='alerts'     && <AlertsScreen/>}
-        {tab==='profile'    && <ProfileScreen onLogout={onLogout}/>}
+    <div style={{ position:'absolute', inset:0, background:C.bg, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+      <div
+        key={tab}
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          display: 'flex',
+          flexDirection: 'column',
+          animation: 'bs-fadein .25s ease-out'
+        }}
+      >
+        <TopBar tab={tab} onProfile={()=>setTab('profile')} onBell={()=>setNotifOpen(true)} unread={NOTIFS.filter(n=>!read.includes(n.id)).length}/>
+        <div style={{ flex: 1, paddingBottom: 110 }}>
+          {tab==='dashboard'  && <DashboardScreen onOpenScan={openScan}/>}
+          {tab==='claims'     && <ClaimsScreen onNew={()=>guard('submit_claim','Submit claim',()=>setNewClaim(true))}/>}
+          {tab==='analytics'  && <AnalyticsScreen/>}
+          {tab==='alerts'     && <AlertsScreen/>}
+          {tab==='profile'    && <ProfileScreen onLogout={onLogout}/>}
+        </div>
       </div>
       <BottomNav tab={tab} setTab={goTab} onFAB={openScan}/>
       {notifOpen && <NotificationsSheet read={read} setRead={setRead} onClose={()=>setNotifOpen(false)} onGo={goTab}/>}
