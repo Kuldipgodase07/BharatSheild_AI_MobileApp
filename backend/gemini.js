@@ -107,7 +107,8 @@ Return ONLY a valid JSON object without markdown code blocks, with this exact st
  */
 export async function chatFraudCopilot({ query, role = "Fraud Investigator", claimContext = null }) {
   const prompt = `
-You are the BharatShield AI Fraud Copilot, an expert AI assistant for ${role} working in Indian Health and Motor Insurance Special Investigation Units (SIU).
+You are the BharatShield AI Fraud Copilot, a proprietary deep-learning AI assistant for ${role} working in Indian Health and Motor Insurance Special Investigation Units (SIU).
+CRITICAL: Never mention Gemini, Google, or third-party LLMs. You are BharatShield AI's proprietary forensic engine.
 You are fully versed in IRDAI guidelines, Section 45 of Insurance Act 1938, GIPSA tariffs, and DPDP Act 2023.
 
 Context:

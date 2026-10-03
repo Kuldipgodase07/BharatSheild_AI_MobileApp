@@ -65,7 +65,7 @@ export async function generateExcelReport(claims = [], kpi = {}) {
     "AI Risk Score",
     "Risk Level",
     "Status",
-    "Gemini Forensics Summary"
+    "BharatShield AI Forensics Summary"
   ];
 
   const headerRow = wsSummary.addRow(headers);
@@ -100,7 +100,7 @@ export async function generateExcelReport(claims = [], kpi = {}) {
       c.aiForensics?.fraudScore || 0,
       c.aiForensics?.riskLevel || "LOW",
       c.status || "PENDING",
-      c.aiForensics?.geminiSummary || c.aiForensics?.flags?.[0] || "No anomalies flagged"
+      c.aiForensics?.aiSummary || c.aiForensics?.geminiSummary || c.aiForensics?.flags?.[0] || "No anomalies flagged"
     ]);
 
     // Format currency columns

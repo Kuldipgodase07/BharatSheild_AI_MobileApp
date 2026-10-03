@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { connectDB, getDB } from './db.js';
@@ -5,7 +6,7 @@ import { analyzeDocumentFraud, chatFraudCopilot } from './gemini.js';
 import { generateExcelReport, generatePdfReport } from './reports.js';
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 5000;
+const PORT = process.env.SERVER_PORT || process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json({ limit: '15mb' }));
@@ -162,7 +163,7 @@ app.post('/api/claims', async (req, res) => {
       assignedRole: "Fraud Investigator",
       timeline: [
         { t: new Date().toISOString(), msg: `Claim registered in BharatShield AI Database`, actor: data.submittedBy || "Portal" },
-        { t: new Date().toISOString(), msg: `Gemini AI Forensics assigned Risk Score: ${aiResult.fraudScore} (${aiResult.riskLevel})`, actor: "Gemini 2026 Engine" }
+        { t: new Date().toISOString(), msg: `BharatShield AI Forensics assigned Risk Score: ${aiResult.fraudScore} (${aiResult.riskLevel})`, actor: "BharatShield Neural Engine" }
       ],
       createdAt: new Date(),
       updatedAt: new Date()
@@ -195,7 +196,7 @@ app.post('/api/claims', async (req, res) => {
       actor: { name: data.submittedBy || "System User", role: "Claim Officer", roleId: "officer" },
       action: "SUBMIT_CLAIM",
       target: claimId,
-      details: `New claim for ₹${newClaim.financials.billedAmount} processed with Gemini AI Score ${aiResult.fraudScore}`,
+      details: `New claim for ₹${newClaim.financials.billedAmount} processed with BharatShield AI Score ${aiResult.fraudScore}`,
       ipAddress: req.ip || "127.0.0.1",
       dpdpCompliant: true
     });

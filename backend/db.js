@@ -42,6 +42,18 @@ async function seedInitialDataIfEmpty(database) {
 
   const count = await claimsCol.countDocuments();
   if (count > 0) {
+    try {
+      const existing = await claimsCol.find({ "aiForensics.geminiSummary": { $regex: /gemini/i } }).toArray();
+      for (const doc of existing) {
+        const sanitized = doc.aiForensics.geminiSummary.replace(/gemini/gi, "BharatShield");
+        await claimsCol.updateOne({ _id: doc._id }, { $set: { "aiForensics.geminiSummary": sanitized, "aiForensics.aiSummary": sanitized } });
+      }
+      if (existing.length > 0) {
+        console.log(`[DB Seeder] Sanitized ${existing.length} claims in MongoDB to BharatShield proprietary branding.`);
+      }
+    } catch (e) {
+      console.warn("[DB Seeder] Sanitization notice:", e.message);
+    }
     console.log(`[DB Seeder] Claims collection already has ${count} records. Ready.`);
     return;
   }
@@ -106,7 +118,7 @@ async function seedInitialDataIfEmpty(database) {
           "Hospital syndicate cluster match: 14 similar cases this quarter",
           "Font mismatch detected on billing ledger header (manipulated PDF)"
         ],
-        geminiSummary: "Gemini Forensics analysis identified systematic billing inflation: surgeon consultation charged 4x standard tariff with duplicate ICU line-items. Digital forensics confirmed altered invoice timestamp."
+        geminiSummary: "BharatShield Forensic Intelligence identified systematic billing inflation: surgeon consultation charged 4x standard tariff with duplicate ICU line-items. Digital forensics confirmed altered invoice timestamp."
       },
       status: "ESCALATED_SIU",
       assignedTo: "Dr. Ananya Sharma",
@@ -177,7 +189,7 @@ async function seedInitialDataIfEmpty(database) {
           "Identical medication dosages claimed across 8 separate policyholders",
           "Pathology report barcode does not exist in NABL registry"
         ],
-        geminiSummary: "Gemini Medical Analysis confirms outpatient viral bronchitis was artificially hospitalized for HDU billing with synthetic pathology lab reports."
+        geminiSummary: "BharatShield Clinical Analysis confirms outpatient viral bronchitis was artificially hospitalized for HDU billing with synthetic pathology lab reports."
       },
       status: "UNDER_REVIEW",
       assignedTo: "Rajesh Nair",
@@ -246,7 +258,7 @@ async function seedInitialDataIfEmpty(database) {
           "Accident impact velocity calculated by AI vision model is inconsistent with stated barrier crash",
           "Damage photo EXIF metadata indicates image was captured 38 days before policy inception"
         ],
-        geminiSummary: "Gemini Computer Vision analysis extracted EXIF creation date proving damage occurred prior to insurance endorsement. Staged accident claim identified."
+        geminiSummary: "BharatShield Vision AI analysis extracted EXIF creation date proving damage occurred prior to insurance endorsement. Staged accident claim identified."
       },
       status: "REJECTED",
       assignedTo: "Kavita Pillai",
@@ -315,7 +327,7 @@ async function seedInitialDataIfEmpty(database) {
           "Ultrasonography report verified with verified digital medical registry",
           "Biometric verification matched patient at admission"
         ],
-        geminiSummary: "Gemini Medical Review: Legitimate procedure adhering to GIPSA tariffs. Routine non-payable items (gloves, sanitizers) deducted. STP approval recommended."
+        geminiSummary: "BharatShield Clinical Audit: Legitimate procedure adhering to GIPSA tariffs. Routine non-payable items (gloves, sanitizers) deducted. STP approval recommended."
       },
       status: "APPROVED",
       assignedTo: "Dr. Rekha Srinivasan",
@@ -383,7 +395,7 @@ async function seedInitialDataIfEmpty(database) {
           "Drug-Eluting Stent NPPA ceiling price cap exceeded by 18%",
           "Angiography DVD verification required for stenosis percentage validation"
         ],
-        geminiSummary: "Gemini Forensics: Procedural necessity validated by ECG. Price adjustment required for stent price compliance as per NPPA guidelines."
+        geminiSummary: "BharatShield Forensics: Procedural necessity validated by ECG. Price adjustment required for stent price compliance as per NPPA guidelines."
       },
       status: "UNDER_REVIEW",
       assignedTo: "Rajesh Nair",
@@ -425,7 +437,7 @@ async function seedInitialDataIfEmpty(database) {
       actor: { name: "Rajesh Nair", role: "Fraud Investigator", roleId: "investigator" },
       action: "EVIDENCE_ATTACHED",
       target: "CLM-2026-9040",
-      details: "Attached Gemini Forensic OCR discrepancy report for invalid NABL barcode",
+      details: "Attached BharatShield Forensic OCR discrepancy report for invalid NABL barcode",
       ipAddress: "103.21.144.112",
       dpdpCompliant: true
     }

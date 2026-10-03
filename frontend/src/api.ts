@@ -53,7 +53,8 @@ export interface BackendClaim {
     lstmTemporalAnomaly: number;
     deepfakeDocScore: number;
     flags: string[];
-    geminiSummary: string;
+    aiSummary?: string;
+    geminiSummary?: string;
   };
   status: 'SUBMITTED' | 'UNDER_REVIEW' | 'ESCALATED_SIU' | 'APPROVED' | 'REJECTED';
   assignedTo?: string;
@@ -109,7 +110,7 @@ export interface BackendAuditLog {
   status?: string;
 }
 
-export interface GeminiDocAnalysisResult {
+export interface AIDocAnalysisResult {
   fraudScore: number;
   riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   tariffInflationPct?: number;
@@ -123,6 +124,7 @@ export interface GeminiDocAnalysisResult {
   executiveSummary?: string;
   analysis?: any;
 }
+export type GeminiDocAnalysisResult = AIDocAnalysisResult;
 
 // ─── API Methods ─────────────────────────────────────────────────────────────
 
@@ -190,97 +192,116 @@ export async function apiGetAuditLogs(): Promise<BackendAuditLog[]> {
   return res.json();
 }
 
-export async function apiAnalyzeDocWithGemini(payload: { documentText?: string; claimData?: any; docType?: string; provider?: string; claimAmount?: string; patientName?: string }): Promise<GeminiDocAnalysisResult> {
+export async function apiAnalyzeDocWithAI(payload: { documentText?: string; claimData?: any; docType?: string; provider?: string; claimAmount?: string; patientName?: string }): Promise<AIDocAnalysisResult> {
   const res = await fetch('/api/ai/analyze-doc', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
-  if (!res.ok) throw new Error('Failed to run Gemini AI analysis');
+  if (!res.ok) throw new Error('Failed to run BharatShield AI analysis');
   return res.json();
 }
+export const apiAnalyzeDocWithGemini = apiAnalyzeDocWithAI;
 
-export async function apiChatWithGemini(query: string, role?: string, claimContext?: any): Promise<string> {
+export async function apiChatWithAICopilot(query: string, role?: string, claimContext?: any): Promise<string> {
   const res = await fetch('/api/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, role, claimContext })
   });
-  if (!res.ok) throw new Error('Failed to contact Gemini Copilot');
+  if (!res.ok) throw new Error('Failed to contact BharatShield Copilot');
   const data = await res.json();
   return data.answer;
 }
+export const apiChatWithGemini = apiChatWithAICopilot;
 
-export async function downloadExcelReportFile(clientFallbackClaims?: any[]) {
+export async function downloadExcelReportFile(clientFallbackClaims?: any[]): Promise<boolean> {
+  const { saveBlobFile, downloadReport, buildReport } = await import('./reports');
+  const filename = `BharatShield_Forensic_Report_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+  // 1. Attempt download from active backend if reachable
   try {
     const res = await fetch('/api/reports/excel');
-    const blob = await res.blob();
-    const { saveBlobFile } = await import('./reports');
-    await saveBlobFile(blob, `BharatShield_Forensic_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  } catch (e) {
-    console.warn('[Backend Excel unavailable, generating locally via ExcelJS]', e);
-    try {
-      const { downloadReport, buildReport } = await import('./reports');
-      const data = buildReport('claims', '30 Days', {
-        claims: clientFallbackClaims || [
-          { id:'CLM-8821', claimant:'Priya Sharma', provider:'Apollo Multi-spec', type:'Duplicate Billing', risk:'High', amt:'₹1,20,000', date:'22 Sep 2026', ai:94 },
-          { id:'CLM-8819', claimant:'Ramesh Gupta', provider:'Fortis Noida', type:'Upcoding', risk:'Medium', amt:'₹48,500', date:'21 Sep 2026', ai:67 },
-          { id:'CLM-8810', claimant:'Ananya Nair', provider:'Max Saket', type:'Ghost Patient', risk:'High', amt:'₹2,10,000', date:'20 Sep 2026', ai:91 },
-          { id:'CLM-8799', claimant:'Vijay Patel', provider:'Medanta Gurgaon', type:'Unnecessary Proc.', risk:'Low', amt:'₹22,000', date:'19 Sep 2026', ai:31 },
-          { id:'CLM-8780', claimant:'Suresh Kumar', provider:'AIIMS Delhi', type:'Inflated Bills', risk:'Medium', amt:'₹87,500', date:'18 Sep 2026', ai:58 }
-        ],
-        models: [
-          { name:'XGBoost Classifier', tag:'Supervised', accuracy:94.2, precision:91.8, recall:88.4, throughput:'12.3K/day' },
-          { name:'Isolation Forest', tag:'Unsupervised', accuracy:96.1, precision:79.4, recall:96.1, throughput:'28.5K/day' }
-        ],
-        patterns: [
-          { id:'EP-041', title:'Coordinated Billing Ring', type:'Network Fraud', status:'Confirmed', confidence:89, desc:'Coordinated batch billing detected' }
-        ],
-        trendMonths: ['Jan','Feb','Mar','Apr','May'],
-        trends: [{ label:'Flagged Claims', vals:[22,28,24,38,30] }]
-      });
-      await downloadReport(data, 'xlsx', `BharatShield_Forensic_Report_${new Date().toISOString().slice(0, 10)}`);
-    } catch (err2) {
-      console.error('[Excel local generation error]', err2);
-      window.open('/api/reports/excel', '_blank');
+    if (res.ok) {
+      const blob = await res.blob();
+      if (blob.size > 200) {
+        return await saveBlobFile(blob, filename);
+      }
     }
+  } catch (e) {
+    console.warn('[Backend Excel endpoint unavailable, generating locally on device]', e);
+  }
+
+  // 2. Client-side fallback generation (Works 100% offline & inside native mobile apps)
+  try {
+    const data = buildReport('claims', '30 Days', {
+      claims: clientFallbackClaims || [
+        { id:'CLM-8821', claimant:'Priya Sharma', provider:'Apollo Multi-spec', type:'Duplicate Billing', risk:'High', amt:'₹1,20,000', date:'22 Sep 2026', ai:94 },
+        { id:'CLM-8819', claimant:'Ramesh Gupta', provider:'Fortis Noida', type:'Upcoding', risk:'Medium', amt:'₹48,500', date:'21 Sep 2026', ai:67 },
+        { id:'CLM-8810', claimant:'Ananya Nair', provider:'Max Saket', type:'Ghost Patient', risk:'High', amt:'₹2,10,000', date:'20 Sep 2026', ai:91 },
+        { id:'CLM-8799', claimant:'Vijay Patel', provider:'Medanta Gurgaon', type:'Unnecessary Proc.', risk:'Low', amt:'₹22,000', date:'19 Sep 2026', ai:31 },
+        { id:'CLM-8780', claimant:'Suresh Kumar', provider:'AIIMS Delhi', type:'Inflated Bills', risk:'Medium', amt:'₹87,500', date:'18 Sep 2026', ai:58 }
+      ],
+      models: [
+        { name:'XGBoost Classifier', tag:'Supervised', accuracy:94.2, precision:91.8, recall:88.4, throughput:'12.3K/day' },
+        { name:'Isolation Forest', tag:'Unsupervised', accuracy:96.1, precision:79.4, recall:96.1, throughput:'28.5K/day' }
+      ],
+      patterns: [
+        { id:'EP-041', title:'Coordinated Billing Ring', type:'Network Fraud', status:'Confirmed', confidence:89, desc:'Coordinated batch billing detected' }
+      ],
+      trendMonths: ['Jan','Feb','Mar','Apr','May'],
+      trends: [{ label:'Flagged Claims', vals:[22,28,24,38,30] }]
+    });
+    await downloadReport(data, 'xlsx', `BharatShield_Forensic_Report_${new Date().toISOString().slice(0, 10)}`);
+    return true;
+  } catch (err2) {
+    console.error('[Excel local generation error]', err2);
+    throw err2;
   }
 }
 
-export async function downloadPdfReportFile(clientFallbackClaims?: any[]) {
+export async function downloadPdfReportFile(clientFallbackClaims?: any[]): Promise<boolean> {
+  const { saveBlobFile, downloadReport, buildReport } = await import('./reports');
+  const filename = `BharatShield_Fraud_Dossier_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+  // 1. Attempt download from active backend if reachable
   try {
     const res = await fetch('/api/reports/pdf');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const blob = await res.blob();
-    const { saveBlobFile } = await import('./reports');
-    await saveBlobFile(blob, `BharatShield_Fraud_Dossier_${new Date().toISOString().slice(0, 10)}.pdf`);
-  } catch (e) {
-    console.warn('[Backend PDF unavailable, generating locally via jsPDF]', e);
-    try {
-      const { downloadReport, buildReport } = await import('./reports');
-      const data = buildReport('executive', '30 Days', {
-        claims: clientFallbackClaims || [
-          { id:'CLM-8821', claimant:'Priya Sharma', provider:'Apollo Multi-spec', type:'Duplicate Billing', risk:'High', amt:'₹1,20,000', date:'22 Sep 2026', ai:94 },
-          { id:'CLM-8819', claimant:'Ramesh Gupta', provider:'Fortis Noida', type:'Upcoding', risk:'Medium', amt:'₹48,500', date:'21 Sep 2026', ai:67 },
-          { id:'CLM-8810', claimant:'Ananya Nair', provider:'Max Saket', type:'Ghost Patient', risk:'High', amt:'₹2,10,000', date:'20 Sep 2026', ai:91 },
-          { id:'CLM-8799', claimant:'Vijay Patel', provider:'Medanta Gurgaon', type:'Unnecessary Proc.', risk:'Low', amt:'₹22,000', date:'19 Sep 2026', ai:31 },
-          { id:'CLM-8780', claimant:'Suresh Kumar', provider:'AIIMS Delhi', type:'Inflated Bills', risk:'Medium', amt:'₹87,500', date:'18 Sep 2026', ai:58 }
-        ],
-        models: [
-          { name:'XGBoost Classifier', tag:'Supervised', accuracy:94.2, precision:91.8, recall:88.4, throughput:'12.3K/day' },
-          { name:'Isolation Forest', tag:'Unsupervised', accuracy:96.1, precision:79.4, recall:96.1, throughput:'28.5K/day' }
-        ],
-        patterns: [
-          { id:'EP-041', title:'Coordinated Billing Ring', type:'Network Fraud', status:'Confirmed', confidence:89, desc:'Coordinated batch billing detected' }
-        ],
-        trendMonths: ['Jan','Feb','Mar','Apr','May'],
-        trends: [{ label:'Flagged Claims', vals:[22,28,24,38,30] }]
-      });
-      await downloadReport(data, 'pdf', `BharatShield_Fraud_Dossier_${new Date().toISOString().slice(0, 10)}`);
-    } catch (err2) {
-      console.error('[PDF local generation error]', err2);
-      window.open('/api/reports/pdf', '_blank');
+    if (res.ok) {
+      const blob = await res.blob();
+      if (blob.size > 200) {
+        return await saveBlobFile(blob, filename);
+      }
     }
+  } catch (e) {
+    console.warn('[Backend PDF endpoint unavailable, generating locally on device]', e);
+  }
+
+  // 2. Client-side fallback generation (Works 100% offline & inside native mobile apps)
+  try {
+    const data = buildReport('executive', '30 Days', {
+      claims: clientFallbackClaims || [
+        { id:'CLM-8821', claimant:'Priya Sharma', provider:'Apollo Multi-spec', type:'Duplicate Billing', risk:'High', amt:'₹1,20,000', date:'22 Sep 2026', ai:94 },
+        { id:'CLM-8819', claimant:'Ramesh Gupta', provider:'Fortis Noida', type:'Upcoding', risk:'Medium', amt:'₹48,500', date:'21 Sep 2026', ai:67 },
+        { id:'CLM-8810', claimant:'Ananya Nair', provider:'Max Saket', type:'Ghost Patient', risk:'High', amt:'₹2,10,000', date:'20 Sep 2026', ai:91 },
+        { id:'CLM-8799', claimant:'Vijay Patel', provider:'Medanta Gurgaon', type:'Unnecessary Proc.', risk:'Low', amt:'₹22,000', date:'19 Sep 2026', ai:31 },
+        { id:'CLM-8780', claimant:'Suresh Kumar', provider:'AIIMS Delhi', type:'Inflated Bills', risk:'Medium', amt:'₹87,500', date:'18 Sep 2026', ai:58 }
+      ],
+      models: [
+        { name:'XGBoost Classifier', tag:'Supervised', accuracy:94.2, precision:91.8, recall:88.4, throughput:'12.3K/day' },
+        { name:'Isolation Forest', tag:'Unsupervised', accuracy:96.1, precision:79.4, recall:96.1, throughput:'28.5K/day' }
+      ],
+      patterns: [
+        { id:'EP-041', title:'Coordinated Billing Ring', type:'Network Fraud', status:'Confirmed', confidence:89, desc:'Coordinated batch billing detected' }
+      ],
+      trendMonths: ['Jan','Feb','Mar','Apr','May'],
+      trends: [{ label:'Flagged Claims', vals:[22,28,24,38,30] }]
+    });
+    await downloadReport(data, 'pdf', `BharatShield_Fraud_Dossier_${new Date().toISOString().slice(0, 10)}`);
+    return true;
+  } catch (err2) {
+    console.error('[PDF local generation error]', err2);
+    throw err2;
   }
 }
 

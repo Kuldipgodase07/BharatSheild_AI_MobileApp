@@ -159,6 +159,8 @@ function IPhoneFrame({ children }: { children: React.ReactNode }) {
   )
 }
 
+document.title = 'BharatSheild AI'
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <IPhoneFrame>

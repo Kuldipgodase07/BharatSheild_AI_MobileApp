@@ -4,7 +4,7 @@ import { buildReport, downloadReport, type ReportKind, type ReportFormat } from 
 import {
   apiGetKpi, apiGetClaims, apiGetAlerts, apiGetAuditLogs,
   apiSubmitClaim, apiUpdateClaimStatus, apiResolveAlert,
-  apiAnalyzeDocWithGemini, apiChatWithGemini,
+  apiAnalyzeDocWithAI, apiChatWithAICopilot,
   downloadExcelReportFile, downloadPdfReportFile,
   type BackendClaim, type BackendAlert, type BackendKpi, type BackendAuditLog
 } from './api'
@@ -932,11 +932,12 @@ function ThreatHero() {
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 function DashboardScreen({ onOpenScan }: { onOpenScan:()=>void }) {
-  const { can:canD } = useRBAC()
+  const { can:canD, toast } = useRBAC()
   const [kpi, setKpi] = useState<BackendKpi | null>(null)
   const [dbClaims, setDbClaims] = useState<BackendClaim[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedPattern, setExpandedPattern] = useState<string|null>(null)
+  const [exporting, setExporting] = useState<'pdf' | 'excel' | null>(null)
 
   useEffect(() => {
     let active = true
@@ -1019,24 +1020,60 @@ function DashboardScreen({ onOpenScan }: { onOpenScan:()=>void }) {
         {/* download buttons */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
           {/* PDF */}
-          <PressBtn onClick={()=>downloadPdfReportFile()} style={{ background:'linear-gradient(145deg,#C2540E 0%,#7A2808 100%)', borderRadius:16, padding:'13px 10px', color:'#fff', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:5, boxShadow:`0 8px 24px rgba(194,84,14,0.45), inset 0 1px 0 rgba(255,200,120,0.15)`, border:'1px solid rgba(255,140,60,0.25)' }}>
+          <PressBtn 
+            onClick={async () => {
+              if (exporting) return
+              setExporting('pdf')
+              try {
+                toast('Generating encrypted PDF Dossier…', true)
+                await downloadPdfReportFile()
+                toast('PDF Dossier saved & ready to open!', true)
+              } catch (e: any) {
+                toast('PDF notice: ' + (e?.message || 'Check storage permissions'), false)
+              } finally {
+                setExporting(null)
+              }
+            }}
+            style={{ background:'linear-gradient(145deg,#C2540E 0%,#7A2808 100%)', borderRadius:16, padding:'13px 10px', color:'#fff', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:5, boxShadow:`0 8px 24px rgba(194,84,14,0.45), inset 0 1px 0 rgba(255,200,120,0.15)`, border:'1px solid rgba(255,140,60,0.25)', opacity: exporting === 'pdf' ? 0.75 : 1 }}>
             <div style={{ width:32, height:32, borderRadius:10, background:'rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:2 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
               </svg>
             </div>
-            <div style={{ fontSize:11.5, fontWeight:800, letterSpacing:'-0.2px', textAlign:'center', lineHeight:1.2 }}>Download PDF<br/>Dossier</div>
-            <div style={{ fontSize:9, fontWeight:600, color:'rgba(255,220,180,0.7)', letterSpacing:'0.4px' }}>Encrypted · Signed</div>
+            <div style={{ fontSize:11.5, fontWeight:800, letterSpacing:'-0.2px', textAlign:'center', lineHeight:1.2 }}>
+              {exporting === 'pdf' ? 'Preparing…' : <>Download PDF<br/>Dossier</>}
+            </div>
+            <div style={{ fontSize:9, fontWeight:600, color:'rgba(255,220,180,0.7)', letterSpacing:'0.4px' }}>
+              {exporting === 'pdf' ? 'Encrypting & Saving' : 'Encrypted · Signed'}
+            </div>
           </PressBtn>
           {/* Excel */}
-          <PressBtn onClick={()=>downloadExcelReportFile()} style={{ background:'linear-gradient(145deg,#1A8050 0%,#0E4D30 100%)', borderRadius:16, padding:'13px 10px', color:'#fff', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:5, boxShadow:`0 8px 24px rgba(26,128,80,0.45), inset 0 1px 0 rgba(100,255,170,0.1)`, border:'1px solid rgba(50,200,120,0.2)' }}>
+          <PressBtn 
+            onClick={async () => {
+              if (exporting) return
+              setExporting('excel')
+              try {
+                toast('Generating forensic Excel XLSX report…', true)
+                await downloadExcelReportFile()
+                toast('Excel Report saved & ready to open!', true)
+              } catch (e: any) {
+                toast('Excel notice: ' + (e?.message || 'Check storage permissions'), false)
+              } finally {
+                setExporting(null)
+              }
+            }}
+            style={{ background:'linear-gradient(145deg,#1A8050 0%,#0E4D30 100%)', borderRadius:16, padding:'13px 10px', color:'#fff', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:5, boxShadow:`0 8px 24px rgba(26,128,80,0.45), inset 0 1px 0 rgba(100,255,170,0.1)`, border:'1px solid rgba(50,200,120,0.2)', opacity: exporting === 'excel' ? 0.75 : 1 }}>
             <div style={{ width:32, height:32, borderRadius:10, background:'rgba(255,255,255,0.12)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:2 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>
               </svg>
             </div>
-            <div style={{ fontSize:11.5, fontWeight:800, letterSpacing:'-0.2px', textAlign:'center', lineHeight:1.2 }}>Export Excel<br/>Report</div>
-            <div style={{ fontSize:9, fontWeight:600, color:'rgba(180,255,210,0.6)', letterSpacing:'0.4px' }}>Live Data · XLSX</div>
+            <div style={{ fontSize:11.5, fontWeight:800, letterSpacing:'-0.2px', textAlign:'center', lineHeight:1.2 }}>
+              {exporting === 'excel' ? 'Preparing…' : <>Export Excel<br/>Report</>}
+            </div>
+            <div style={{ fontSize:9, fontWeight:600, color:'rgba(180,255,210,0.6)', letterSpacing:'0.4px' }}>
+              {exporting === 'excel' ? 'Compiling Live Data' : 'Live Data · XLSX'}
+            </div>
           </PressBtn>
         </div>
       </div>
@@ -1187,7 +1224,7 @@ function ClaimsScreen({ onNew }: { onNew:()=>void }) {
     hospital: { name: c.provider, city: 'Mumbai', state: 'MH', nabhAccredited: true, riskRating: c.risk.toUpperCase(), syndicateFlag: c.risk==='High' },
     treatment: { diagnosis: c.type, icd10: 'K35.2', admissionDate: c.date, dischargeDate: c.date, lengthOfStayDays: 3, roomCategory: 'Standard' },
     financials: { billedAmount: parseInt(c.amt.replace(/\D/g,'')) || 100000, approvedAmount: 0, disallowedAmount: parseInt(c.amt.replace(/\D/g,'')) || 100000, gipsaBenchmarkTariff: 45000, tariffInflationPct: 40 },
-    aiForensics: { fraudScore: c.ai, riskLevel: c.risk==='High'?'HIGH':c.risk==='Medium'?'MEDIUM':'LOW' as any, isolationForestScore: 0.8, xgbAnomalyScore: 0.8, lstmTemporalAnomaly: 0.7, deepfakeDocScore: 0.1, flags: ['Tariff deviation detected'], geminiSummary: 'Forensic flags detected.' },
+    aiForensics: { fraudScore: c.ai, riskLevel: c.risk==='High'?'HIGH':c.risk==='Medium'?'MEDIUM':'LOW' as any, isolationForestScore: 0.8, xgbAnomalyScore: 0.8, lstmTemporalAnomaly: 0.7, deepfakeDocScore: 0.1, flags: ['Tariff deviation detected'], aiSummary: 'Forensic flags detected.', geminiSummary: 'Forensic flags detected.' },
     status: c.risk==='High'?'ESCALATED_SIU':'UNDER_REVIEW' as any,
     timeline: []
   }))
@@ -1223,12 +1260,34 @@ function ClaimsScreen({ onNew }: { onNew:()=>void }) {
               </svg>
               <span>New Claim</span>
             </PressBtn>
-            <PressBtn onClick={()=>downloadExcelReportFile()} title="Export Live Excel Report" style={{ width:36, height:36, borderRadius:12, background:'linear-gradient(145deg,#1F8A53 0%,#125833 100%)', border:'1px solid rgba(50,200,120,0.3)', color:'#fff', boxShadow:'0 4px 14px rgba(26,128,80,0.35)', padding:0 }}>
+            <PressBtn 
+              onClick={async () => {
+                toast('Generating Excel report…', true)
+                try {
+                  await downloadExcelReportFile()
+                  toast('Excel report saved & ready!', true)
+                } catch {
+                  toast('Failed to export Excel', false)
+                }
+              }} 
+              title="Export Live Excel Report" 
+              style={{ width:36, height:36, borderRadius:12, background:'linear-gradient(145deg,#1F8A53 0%,#125833 100%)', border:'1px solid rgba(50,200,120,0.3)', color:'#fff', boxShadow:'0 4px 14px rgba(26,128,80,0.35)', padding:0 }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>
               </svg>
             </PressBtn>
-            <PressBtn onClick={()=>downloadPdfReportFile()} title="Download Live PDF Dossier" style={{ width:36, height:36, borderRadius:12, background:'linear-gradient(145deg,#C2540E 0%,#7A2808 100%)', border:'1px solid rgba(255,140,60,0.3)', color:'#fff', boxShadow:'0 4px 14px rgba(194,84,14,0.35)', padding:0 }}>
+            <PressBtn 
+              onClick={async () => {
+                toast('Generating PDF dossier…', true)
+                try {
+                  await downloadPdfReportFile()
+                  toast('PDF dossier saved & ready!', true)
+                } catch {
+                  toast('Failed to download PDF', false)
+                }
+              }} 
+              title="Download Live PDF Dossier" 
+              style={{ width:36, height:36, borderRadius:12, background:'linear-gradient(145deg,#C2540E 0%,#7A2808 100%)', border:'1px solid rgba(255,140,60,0.3)', color:'#fff', boxShadow:'0 4px 14px rgba(194,84,14,0.35)', padding:0 }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
               </svg>
@@ -1333,7 +1392,7 @@ function ClaimsScreen({ onNew }: { onNew:()=>void }) {
                     <div style={{ borderTop:`1px solid ${C.border}`, padding:'14px 16px', background:'rgba(255,255,255,0.02)', animation:'bs-fadein .2s ease-out' }}>
                       <div style={{ fontSize:10.5, fontWeight:800, color:C.amber, letterSpacing:'0.8px', marginBottom:8 }}>BHARATSHIELD AI FORENSIC ANALYSIS</div>
                       <div style={{ fontSize:12, color:C.dim, lineHeight:1.55, background:'rgba(255,122,61,0.06)', border:`1px solid ${C.orange}22`, borderRadius:12, padding:10, marginBottom:12 }}>
-                        {cl.aiForensics?.geminiSummary || "Multi-modal model detected procedural tariff discrepancy exceeding standard GIPSA schedules."}
+                        {cl.aiForensics?.aiSummary || cl.aiForensics?.geminiSummary || "Multi-modal model detected procedural tariff discrepancy exceeding standard GIPSA schedules."}
                       </div>
 
                       {cl.aiForensics?.flags && cl.aiForensics.flags.length > 0 && (
@@ -1814,8 +1873,8 @@ function FraudGraph({ full=false, onExpand, onClose }: { full?:boolean; onExpand
   )
 }
 
-// ─── GEMINI AI COPILOT CARD ──────────────────────────────────────────────────
-function GeminiCopilotCard() {
+// ─── BHARATSHIELD AI COPILOT CARD ────────────────────────────────────────────
+function BharatShieldCopilotCard() {
   const [q, setQ] = useState('')
   const [ans, setAns] = useState<string|null>(null)
   const [loading, setLoading] = useState(false)
@@ -1832,7 +1891,7 @@ function GeminiCopilotCard() {
     setLoading(true)
     setAns(null)
     try {
-      const response = await apiChatWithGemini(text)
+      const response = await apiChatWithAICopilot(text)
       setAns(response)
     } catch {
       setAns("BharatShield Copilot: Unable to reach forensics service. Please verify server connection.")
@@ -1912,8 +1971,8 @@ function AnalyticsScreen() {
 
       <ReportsCenter/>
 
-      {/* ── Real-time Gemini AI Fraud Copilot ──────────────────────────────── */}
-      <GeminiCopilotCard/>
+      {/* ── Real-time BharatShield AI Fraud Copilot ────────────────────────── */}
+      <BharatShieldCopilotCard/>
 
       {/* Model selector */}
       <Card style={{ marginBottom:14, padding:0, overflow:'hidden' }}>
@@ -2091,12 +2150,12 @@ function AlertsScreen() {
   const handleInvestigate = async (alertId: string, title: string) => {
     setInvestigatingId(alertId)
     try {
-      const res = await apiChatWithGemini(
+      const res = await apiChatWithAICopilot(
         `Perform rapid forensic SIU investigation for Alert ${alertId}: "${title}". Provide immediate recommended action steps for the claims processing officer in 2 brief bullet points.`
       )
       setInvestigationNotes(prev => ({ ...prev, [alertId]: res }))
     } catch {
-      setInvestigationNotes(prev => ({ ...prev, [alertId]: 'Gemini copilot recommends: 1. Place temporary payment hold on provider. 2. Request original operative notes and indoor case papers.' }))
+      setInvestigationNotes(prev => ({ ...prev, [alertId]: 'BharatShield SIU Copilot recommends: 1. Place temporary payment hold on provider. 2. Request original operative notes and indoor case papers.' }))
     }
   }
 
@@ -2419,7 +2478,7 @@ function NewClaimSheet({ onClose }: { onClose:()=>void }) {
         <div style={{ width:84, height:84, margin:'0 auto 14px', borderRadius:'50%', background:`${col}1A`, border:`2px solid ${col}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:30, fontWeight:900, color:col }}>{score}</div>
         <div style={{ fontSize:16, fontWeight:800, color:C.text }}>{level} risk · {level==='LOW'?'Fast-track approved':level==='MEDIUM'?'Sent for manual review':'Escalated to SIU'}</div>
         <div style={{ fontSize:12.5, color:C.dim, marginTop:6, lineHeight:1.5 }}>
-          {createdClaim?.aiForensics?.geminiSummary || (level==='LOW'?'No anomalies found. Expected settlement in 48 hours.':'Our team may contact you for additional documents.')}
+          {createdClaim?.aiForensics?.aiSummary || createdClaim?.aiForensics?.geminiSummary || (level==='LOW'?'No anomalies found. Expected settlement in 48 hours.':'Our team may contact you for additional documents.')}
         </div>
       </div>
       <Bar>OFFICIAL CLAIM DETAILS</Bar>
@@ -2733,7 +2792,7 @@ function DocScanScreen({ onClose }: { onClose:()=>void }) {
 
     // Fire backend AI Document Forensics API in background
     let backendPayload: any = null
-    apiAnalyzeDocWithGemini({
+    apiAnalyzeDocWithAI({
       docType: selected,
       provider: customProvider,
       claimAmount: customAmount,

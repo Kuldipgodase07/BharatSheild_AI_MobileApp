@@ -62,6 +62,7 @@ import { Share } from '@capacitor/share'
 export const saveBlobFile = async (blob: Blob, name: string): Promise<boolean> => {
   try {
     if (Capacitor.isNativePlatform()) {
+      // 1. Convert Blob to Base64 for Capacitor Filesystem
       const base64Data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
         reader.onloadend = () => {
@@ -73,35 +74,76 @@ export const saveBlobFile = async (blob: Blob, name: string): Promise<boolean> =
         reader.readAsDataURL(blob)
       })
 
-      const fileResult = await Filesystem.writeFile({
+      // 2. Request/Verify Storage permissions if needed
+      try {
+        const permStatus = await Filesystem.checkPermissions()
+        if (permStatus.publicStorage === 'prompt' || permStatus.publicStorage === 'prompt-with-rationale') {
+          await Filesystem.requestPermissions()
+        }
+      } catch (pErr) {
+        console.warn('[BharatShield] Storage permission warning:', pErr)
+      }
+
+      // 3. Save to Public Documents so it is persistently downloaded on the device
+      let docUri: string | null = null
+      try {
+        const docResult = await Filesystem.writeFile({
+          path: name,
+          data: base64Data,
+          directory: Directory.Documents,
+          recursive: true
+        })
+        docUri = docResult.uri
+        console.log('[BharatShield] Saved to Documents storage:', docResult.uri)
+      } catch (docErr) {
+        console.warn('[BharatShield] Documents folder write notice:', docErr)
+      }
+
+      // 4. Always save to Cache directory (guaranteed accessible for Android FileProvider)
+      const cacheResult = await Filesystem.writeFile({
         path: name,
         data: base64Data,
         directory: Directory.Cache,
         recursive: true
       })
+      console.log('[BharatShield] Saved to Cache storage:', cacheResult.uri)
 
-      await Share.share({
-        title: name,
-        text: `BharatShield AI Forensic Dossier - ${name}`,
-        url: fileResult.uri,
-        dialogTitle: `Save or Open ${name}`
-      })
+      const shareUri = cacheResult.uri || docUri
+
+      // 5. Present Native Android/iOS system Share & Open Sheet
+      // CRITICAL: Must use `files: [shareUri]` so Android FileProvider attaches the file stream
+      if (shareUri) {
+        try {
+          await Share.share({
+            title: name,
+            files: [shareUri],
+            dialogTitle: `Save or Open ${name}`
+          })
+        } catch (shareErr: any) {
+          // If user cancels or dismisses the share sheet, the file is already downloaded to storage!
+          console.log('[BharatShield] Native share dialog completed or dismissed:', shareErr?.message || shareErr)
+        }
+      }
+
       return true
     }
   } catch (nativeErr) {
-    console.warn('[Native file save/share fallback]', nativeErr)
+    console.warn('[BharatShield Native file save error, attempting browser fallback]', nativeErr)
   }
 
-  // Web fallback
+  // Web / Browser fallback
   try {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
+    a.style.display = 'none'
     a.href = url
     a.download = name
     document.body.appendChild(a)
     a.click()
-    a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 4000)
+    setTimeout(() => {
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    }, 4000)
     return true
   } catch (err) {
     console.error('[Web file save error]', err)
